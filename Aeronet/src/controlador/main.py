@@ -11,9 +11,11 @@ from matplotlib.backends.backend_qt5agg import (NavigationToolbar2QT as Navigati
 import numpy as np
 #import random
 import pymysql
+import sys
 
 import src.modelo.globales as g
 import src.modelo.consultasBBDD as c
+import src.vista.mainWindow as v
 
 class main:
     
@@ -22,7 +24,8 @@ class main:
         self.cursor = self.db.cursor()
         
     def printDatos(self):
-        data = c.consultaBBDD.getPhStation(self, self.cursor)
+        data = c.consultaBBDD.getPhStationDates(self, self.cursor)
+        return data
         '''for row in data:
             print("Numero: "+str(row[0])+" Estacion: "+str(row[1]))'''
     
@@ -34,11 +37,29 @@ class main:
     
             loadUi("prueba.ui",self)'''
     
+    #Devuelve una lista de distict fotometros y estaciones   
+    def getDatosPhStation(self):
+        datos=c.consultaBBDD.getPhStation(self, self.cursor)
+        return datos
+    
+    #Devuelve una lista de objetos con el n de fotometro, la estación, el conjunto de fechas que estáactivo y con los eprom type y subtype
+    def getDatosCompletos(self):
+        datos=c.consultaBBDD.getPhStationDates(self, self.cursor)
+        return datos
+    
     
 m=main()
-m.printDatos()
+datosDistinct = m.getDatosPhStation()
+datosCompletos = m.getDatosCompletos()
 
-    
+#Crear y abrir ventana con interfaz inicial
+app = QApplication(sys.argv)
+screen = v.mainWindow()
+screen.setDatosTabla(datosDistinct)
+screen.show()
+
+#Cerrar ventana
+sys.exit(app.exec_())    
         
 
             
