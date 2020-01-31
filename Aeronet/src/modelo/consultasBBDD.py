@@ -38,14 +38,12 @@ class consultaBBDD():
                 #listPhStation.append(row)
                 if aux not in indices:
                     indices.append(aux)
-                    o = objecto.phStationObject()
-                    o.setPhStation(aux)
-                    o.setEType(row[4])
-                    o.setESubType(row[5])
+                    o = objecto.phStationObject(aux, row[4], row[5])
                     fechas.append(row[2])
                     fechas.append(row[3])
                     o.setDateOfUse(fechas)
                     datosCompletos.append(o)
+                    #print (o.__dict__)
                     contador+=1
                 else:
                     o=datosCompletos[contador-1]
@@ -57,8 +55,7 @@ class consultaBBDD():
                     
         except ValueError:
             print(g.err1)
-            
-        print (datosCompletos)    
-        return data
+               
+        return datosCompletos
     
     

@@ -7,13 +7,13 @@ Created on 29 ene. 2020
 #Objeto para mapear los datos de cada fotómetro
 class phStationObject:
     
-    def __init__(self): 
-        self.phStation = ""
-        self.dateOfUse = []
-        self.eprom_type = ""
-        self.eprom_subtype = ""
+    def __init__(self, phStation, eprom_type, eprom_subtype): 
+        self.phStation = phStation
+        self.dateOfUse = []     #Lista para contener todas las fechas de uso
+        self.eprom_type = eprom_type
+        self.eprom_subtype = eprom_subtype
         
-    def getPhStatiopn(self):
+    def getPhStation(self):
         return self.phStation
 
     def setPhStation(self, x):

@@ -16,6 +16,7 @@ import sys
 import src.modelo.globales as g
 import src.modelo.consultasBBDD as c
 import src.vista.mainWindow as v
+import src.modelo.consultasBBDD as o
 
 class main:
     
@@ -51,6 +52,9 @@ class main:
 m=main()
 datosDistinct = m.getDatosPhStation()
 datosCompletos = m.getDatosCompletos()
+p=2
+#print (str(datosCompletos[0].__getattribute__('phStation')))
+
 
 #Crear y abrir ventana con interfaz inicial
 app = QApplication(sys.argv)
@@ -58,7 +62,7 @@ screen = v.mainWindow()
 screen.setDatosTabla(datosDistinct)
 screen.show()
 
-#Cerrar ventana
+#Cerrar ventana {'phStation': '10  CEILAP-BA', 'dateOfUse': [[datetime.datetime(2019, 4, 9, 10, 0), datetime.datetime(2021, 1, 31, 14, 18, 18)]], 'eprom_type': 'standard', 'eprom_subtype': 'digital'}
 sys.exit(app.exec_())    
         
 

@@ -51,7 +51,9 @@ class mainWindow(QWidget):
         
         '''self.mainLayout.addWidget(self.tableFWidget)'''
         self.mainLayout.addWidget(self.tableWidget)
-        self.setLayout(self.mainLayout) 
+        self.setLayout(self.mainLayout)
+        
+         
      
     #Metodo para rellenar la tabla con fotometro y estacion     
     def setDatosTabla(self, datos):
