@@ -4,7 +4,8 @@ Created on 29 ene. 2020
 @author: Jesus Brezmes Gil-Albarellos
 '''
 from PyQt5 import QtCore, QtGui, QtWidgets
-
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_qt5agg import FigureCanvasAgg as FigureCanvas
 
 from mysql.connector import (connection)
 from PyQt5.QtWidgets import *
@@ -38,11 +39,22 @@ class mainWindow(QWidget):
         
         #Tabla para mostrar los datos
         self.tableWidget = QTableWidget()
-        self.tableWidget.setColumnCount(2)
+        self.tableWidget.setColumnCount(1)
         self.tableWidget.doubleClicked.connect(self.on_click)
         self.tableWidget.setFont(QFont('Times New Roman', 10, QFont.Bold))
         self.tableWidget.horizontalHeader().hide()
         self.tableWidget.verticalHeader().hide()
+        
+        self.quitButton = QPushButton("Salir")
+        self.quitButton.clicked.connect(self.quit)
+
+        self.hbox = QHBoxLayout()
+        self.hbox.addStretch(1)
+        self.hbox.setContentsMargins(0,0,10,10)
+        self.hbox.addWidget(self.quitButton)
+        
+        #Layout de la gáfica de uso de los fotómetros
+        
         
         #Layout de la grafica 
         self.mainLayout = QVBoxLayout()
@@ -51,13 +63,13 @@ class mainWindow(QWidget):
         
         '''self.mainLayout.addWidget(self.tableFWidget)'''
         self.mainLayout.addWidget(self.tableWidget)
-        self.setLayout(self.mainLayout)
-        
-         
+        self.mainLayout.addLayout(self.hbox)
+        self.setLayout(self.mainLayout) 
      
     #Metodo para rellenar la tabla con fotometro y estacion     
     def setDatosTabla(self, datos):
         self.tableWidget.setRowCount(len(datos))
+        self.canvas = FigureCanvas(Figure())
         contador=0  
         #labels=[] 
         for dato in datos:
@@ -74,3 +86,6 @@ class mainWindow(QWidget):
         for currentQTableWidgetItem in self.tableWidget.selectedItems():
             print(currentQTableWidgetItem.row(), currentQTableWidgetItem.column(), currentQTableWidgetItem.text())
     
+    
+    def quit(self):
+        print("Salir")

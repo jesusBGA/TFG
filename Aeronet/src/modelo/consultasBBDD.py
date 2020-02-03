@@ -58,4 +58,13 @@ class consultaBBDD():
                
         return datosCompletos
     
-    
+    #Metodo para obtener la fecha más antigua de la vida de los fotometros
+    def minFecha(self, cursor):
+        cursor.execute(g.sql3)
+        return cursor.fetchone()
+        
+    #Metodo para obtener la fecha futura más amplia de la vida de los fotometros
+    def maxFecha(self, cursor):
+        cursor.execute(g.sql4)
+        return cursor.fetchone()
+        
