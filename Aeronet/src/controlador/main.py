@@ -4,7 +4,7 @@ Created on 28 ene. 2020
 @author: Jesus Brezmes Gil-Albarellos
 '''
 from PyQt5.QtWidgets import*
-from PyQt5.uic import loadUi
+from PyQt5 import QtCore
 
 from matplotlib.backends.backend_qt5agg import (NavigationToolbar2QT as NavigationToolbar)
 
@@ -24,21 +24,8 @@ class main:
     def __init__(self): 
         self.db = pymysql.connect(g.database_host, g.user, g.password, g.database_name)
         self.cursor = self.db.cursor()
-        
-    def printDatos(self):
-        data = c.consultaBBDD.getPhStationDates(self, self.cursor)
-        return data
-        '''for row in data:
-            print("Numero: "+str(row[0])+" Estacion: "+str(row[1]))'''
     
-    '''class MatplotlibWidget(QMainWindow):
-        
-        def __init__(self):
-            
-            QMainWindow.__init__(self)
-    
-            loadUi("prueba.ui",self)'''
-    
+       
     #Devuelve una lista de distict fotometros y estaciones   
     def getDatosPhStation(self):
         datos=c.consultaBBDD.getPhStation(self, self.cursor)
@@ -70,14 +57,15 @@ datosCompletos = m.getDatosCompletos()
 
 
 #Crear y abrir ventana con interfaz inicial
+#QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
 app = QApplication(sys.argv)
 '''screen = v.mainWindow()
 screen.setDatosTabla(datosDistinct)
 screen.show()'''
 
-datos=m.getDatosAOD(10)
+#datos=m.getDatosAOD(10)
 screen2 = vg.graphWindow()
-screen2.plotGrafica(datos)
+#screen2.plotGrafica(datos)
 screen2.show()
 
 #Cerrar ventana 

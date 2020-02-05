@@ -1,9 +1,4 @@
 '''
-Created on 4 feb. 2020
-
-@author: jesus
-'''
-'''
 Created on 28 ene. 2020
 
 @author: Jesus Brezmes Gil-Albarellos
