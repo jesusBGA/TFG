@@ -20,6 +20,8 @@ from matplotlib.collections import PolyCollection
 from mysql.connector import (connection)
 from setuptools.windows_support import hide_file
 
+
+
 #Ventana principal de la aplicación
 class mainWindow(QWidget):
 
@@ -85,7 +87,7 @@ class mainWindow(QWidget):
         print("\n")
         for currentQTableWidgetItem in self.tableWidget.selectedItems():
             print(currentQTableWidgetItem.row(), currentQTableWidgetItem.column(), currentQTableWidgetItem.text())
-    
+        
     
     def quit(self):
         print("Salir")

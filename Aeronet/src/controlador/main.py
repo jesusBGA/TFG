@@ -16,6 +16,7 @@ import sys
 import src.modelo.globales as g
 import src.modelo.consultasBBDD as c
 import src.vista.mainWindow as v
+import src.vista.graphWindow as vg
 import src.modelo.consultasBBDD as o
 
 class main:
@@ -48,27 +49,38 @@ class main:
         datos=c.consultaBBDD.getPhStationDates(self, self.cursor)
         return datos
     
+    #Devuelve una lista de fotometro, fecha, channel, aod
+    def getDatosAOD(self, ph):
+        datos=c.consultaBBDD.getAODChannels(self, self.cursor, ph)
+        return datos
+    
+    #Invoca la ventana graphWindow, la cual muestra datos para un fotometro concreto
+    def graphWindow(self, ph):
+        print(ph[0])
+        '''datos=c.consultaBBDD.getAODChannels(self, self.cursor, ph)
+        screen2 = vg.graphWindow(datos)
+        screen2.plotGrafica(datos)
+        screen2.show()''' 
     
 m=main()
 datosDistinct = m.getDatosPhStation()
 datosCompletos = m.getDatosCompletos()
-p=2
 #print (str(datosCompletos[0].__getattribute__('phStation')))
+
 
 
 #Crear y abrir ventana con interfaz inicial
 app = QApplication(sys.argv)
-screen = v.mainWindow()
+'''screen = v.mainWindow()
 screen.setDatosTabla(datosDistinct)
-screen.show()
+screen.show()'''
 
-#Cerrar ventana {'phStation': '10  CEILAP-BA', 'dateOfUse': [[datetime.datetime(2019, 4, 9, 10, 0), datetime.datetime(2021, 1, 31, 14, 18, 18)]], 'eprom_type': 'standard', 'eprom_subtype': 'digital'}
+datos=m.getDatosAOD(10)
+screen2 = vg.graphWindow()
+screen2.plotGrafica(datos)
+screen2.show()
+
+#Cerrar ventana 
 sys.exit(app.exec_())    
         
 
-            
-    
-'''app = QApplication([])
- window = MatplotlibWidget()
- window.show()
-app.exec_()'''

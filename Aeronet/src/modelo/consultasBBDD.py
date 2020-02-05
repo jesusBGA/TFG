@@ -6,6 +6,7 @@ Created on 29 ene. 2020
 
 import src.modelo.globales as g
 import src.modelo.phStationObject as objecto
+import sys
 
 #Clase para realizar las diferentes consultas a la BBDD
 class consultaBBDD():  
@@ -60,11 +61,24 @@ class consultaBBDD():
     
     #Metodo para obtener la fecha más antigua de la vida de los fotometros
     def minFecha(self, cursor):
-        cursor.execute(g.sql3)
-        return cursor.fetchone()
+        try:    
+            cursor.execute(g.sql3)
+            return cursor.fetchone()
+        except ValueError:
+            print(g.err1)
         
     #Metodo para obtener la fecha futura más amplia de la vida de los fotometros
     def maxFecha(self, cursor):
-        cursor.execute(g.sql4)
-        return cursor.fetchone()
-        
+        try:
+            cursor.execute(g.sql4)
+            return cursor.fetchone()
+        except ValueError:
+            print(g.err1)
+    
+    #Metodo para obtener los datos AOD para un fotometro y unas fechas dadas
+    def getAODChannels(self, cursor, ph):
+        try:
+            cursor.execute("SELECT C.channel, C.date, avg(C.aod) FROM caelis.cml_aod_channel C JOIN caelis.cml_aod A ON (A.ph=C.ph && A.date=C.date) WHERE (C.ph=10 && C.aod is not null) GROUP BY C.channel, C.date;")
+            return cursor.fetchall()
+        except:
+           print(sys.exc_info())       
