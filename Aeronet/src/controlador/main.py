@@ -24,6 +24,7 @@ class main:
     def __init__(self): 
         self.db = pymysql.connect(g.database_host, g.user, g.password, g.database_name)
         self.cursor = self.db.cursor()
+        #self.cursor.query('SET GLOBAL connection_timeout=600')
     
        
     #Devuelve una lista de distict fotometros y estaciones   
@@ -63,9 +64,10 @@ app = QApplication(sys.argv)
 screen.setDatosTabla(datosDistinct)
 screen.show()'''
 
-#datos=m.getDatosAOD(10)
+datos=m.getDatosAOD(10)
+print(str(len(datos)))
 screen2 = vg.graphWindow()
-#screen2.plotGrafica(datos)
+screen2.plotGrafica(datos)
 screen2.show()
 
 #Cerrar ventana 

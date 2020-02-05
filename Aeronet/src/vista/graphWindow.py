@@ -8,7 +8,10 @@ from PyQt5.QtWidgets import *
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar, FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
+plt.style.use('classic')
 from PyQt5 import QtCore
+import datetime as datetime
+from matplotlib.dates import DateFormatter
 
 #Ventana para graficar los datos de cada fotometro individualmente
 class graphWindow(QWidget):
@@ -30,6 +33,10 @@ class graphWindow(QWidget):
         
         #Grafica y navigation toolbar
         self.fig, self.ax = plt.subplots()
+        self.ax.xaxis.set_major_formatter(DateFormatter('%d-%m-%Y %H:%M'))
+        self.ax.set_xlim([datetime.datetime(2019, 4, 29, 0, 0),datetime.datetime(2019, 5, 1, 0, 0)])
+        self.ax.set_ylim([-1, 4])
+        self.fig.autofmt_xdate()
         self.graficaLayout = QVBoxLayout()
         self.canvas = FigureCanvas(self.fig)
         self.addToolBar = NavigationToolbar(self.canvas, self)
@@ -107,8 +114,39 @@ class graphWindow(QWidget):
         self.horizontalLayout.addLayout(self.botonesLayout)
         self.mainLayout.addLayout(self.horizontalLayout)
         self.setLayout(self.mainLayout)
-        self.addToolBar = NavigationToolbar(self.canvas, self)
         
     #Plotea los datos del fotometro    
     def plotGrafica(self, datos):
-        print("-")
+        switcher = {
+            1: "ro",
+            2: "bx",
+            3: "c^",
+            4: "ms",
+            5: "yp",
+            6: "o<",
+            7: "lime>",
+            8: "siennaD",
+            9: "*",
+            10: ",",
+            11: "November",
+            12: "December"
+        }
+        for row in datos:
+            if row[0]==1:
+                self.ax.plot(row[1], row[2],"ro")
+            elif row[0]==2:
+                self.ax.plot(row[1], row[2],"bx")
+            elif row[0]==3:
+                self.ax.plot(row[1], row[2],"c^")
+            elif row[0]==4:
+                self.ax.plot(row[1], row[2],"ms")
+            elif row[0]==5:
+                self.ax.plot(row[1], row[2],"yp")
+            elif row[0]==6:
+                self.ax.plot(row[1], row[2],"gD")
+            elif row[0]==7:
+                self.ax.plot(row[1], row[2],"C7*")
+            elif row[0]==8:
+                self.ax.plot(row[1], row[2],"r<")    
+            #self.ax.plot(row[1], row[2], switcher.get(row[0], "k"))
+        self.canvas.draw()
