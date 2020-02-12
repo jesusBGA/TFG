@@ -42,6 +42,11 @@ class main:
         datos=c.consultaBBDD.getAODChannels(self, self.cursor, ph)
         return datos
     
+    #Devuelve una lista de fotometro, fecha, channel, aod
+    def getDatosAODCSV(self, ph):
+        datos=c.consultaBBDD.getAODChannelsCSV(self, self.cursor, ph)
+        return datos
+    
     #Invoca la ventana graphWindow, la cual muestra datos para un fotometro concreto
     def graphWindow(self, ph):
         print(ph[0])
@@ -51,8 +56,8 @@ class main:
         screen2.show()''' 
     
 m=main()
-datosDistinct = m.getDatosPhStation()
-datosCompletos = m.getDatosCompletos()
+'''datosDistinct = m.getDatosPhStation()
+datosCompletos = m.getDatosCompletos()'''
 #print (str(datosCompletos[0].__getattribute__('phStation')))
 
 
@@ -65,9 +70,10 @@ screen.setDatosTabla(datosDistinct)
 screen.show()'''
 
 datos=m.getDatosAOD(10)
-print(str(len(datos)))
+
 screen2 = vg.graphWindow()
 screen2.plotGrafica(datos)
+'''screen2.plotCSVGrafica()'''
 screen2.show()
 
 #Cerrar ventana 

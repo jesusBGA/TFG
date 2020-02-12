@@ -10,8 +10,11 @@ from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 plt.style.use('classic')
 from PyQt5 import QtCore
-import datetime as datetime
+import datetime
+from matplotlib.dates import date2num, num2date
 from matplotlib.dates import DateFormatter
+import pandas as pd
+from pandas.plotting import register_matplotlib_converters
 
 #Ventana para graficar los datos de cada fotometro individualmente
 class graphWindow(QWidget):
@@ -33,8 +36,9 @@ class graphWindow(QWidget):
         
         #Grafica y navigation toolbar
         self.fig, self.ax = plt.subplots()
+        register_matplotlib_converters()
         self.ax.xaxis.set_major_formatter(DateFormatter('%d-%m-%Y %H:%M'))
-        self.ax.set_xlim([datetime.datetime(2019, 4, 29, 0, 0),datetime.datetime(2019, 5, 1, 0, 0)])
+        self.ax.set_xlim([datetime.datetime(2019, 4, 24, 0, 0),datetime.datetime(2019, 5, 1, 0, 0)])
         self.ax.set_ylim([-1, 4])
         self.fig.autofmt_xdate()
         self.graficaLayout = QVBoxLayout()
@@ -55,8 +59,10 @@ class graphWindow(QWidget):
         self.AOD = QPushButton("AOD")
         self.dataTypeVL.addWidget(self.AOD)
         self.Wexp = QPushButton("Wexp")
+        self.Wexp.clicked.connect(self.Wext_clicked)
         self.dataTypeVL.addWidget(self.Wexp)
         self.Water_Vapor = QPushButton("Water Vapor")
+        self.Water_Vapor.clicked.connect(self.WaterVapor_clicked)
         self.dataTypeVL.addWidget(self.Water_Vapor)
         self.SDA = QPushButton("SDA")
         self.dataTypeVL.addWidget(self.SDA)
@@ -131,6 +137,7 @@ class graphWindow(QWidget):
             11: "November",
             12: "December"
         }
+        
         for row in datos:
             if row[0]==1:
                 self.ax.plot(row[1], row[2],"ro")
@@ -149,4 +156,42 @@ class graphWindow(QWidget):
             elif row[0]==8:
                 self.ax.plot(row[1], row[2],"r<")    
             #self.ax.plot(row[1], row[2], switcher.get(row[0], "k"))
+        self.ax.legend()
         self.canvas.draw()
+        
+    #Plotea los datos del fotometro desde el csv
+    def plotCSVGrafica(self):
+        data= pd.read_csv('../modelo/aod.csv', index_col=0)
+        data.plot()
+        '''c1=data.loc["1"]
+        c2=data.loc["2"]
+        years=data.columns
+        self.ax.plot(years, c1, "ro", label="Channel1")
+        self.ax.plot(years, c2, "bx", label="Channel2")'''
+    
+    
+    #Reiniciar y dar formato a los ejes de la gráfica    
+    def limpiaPlot(self):
+        self.ax.clear()
+        self.ax.xaxis.set_major_formatter(DateFormatter('%d-%m-%Y %H:%M'))
+        self.ax.set_xlim([datetime.datetime(2019, 4, 24, 0, 0),datetime.datetime(2019, 5, 1, 0, 0)])
+        self.ax.set_ylim([-1, 4])
+        self.fig.autofmt_xdate()
+        self.canvas.draw()
+        self.canvas.flush_events()
+        
+    #Acción boton Wext    
+    def Wext_clicked(self):
+        self.limpiaPlot()
+        self.ax.plot(datetime.datetime(2019, 4, 30, 0, 0), 2.8, "ro")
+        self.canvas.draw()
+        
+    #Acción boton Wext    
+    def WaterVapor_clicked(self):
+        fecha = self.ax.get_xlim()
+        f1= str(num2date(fecha[0]))
+        f2= str(num2date(fecha[1]))
+        print(f1[0:19])
+        print(f2[0:19])
+        
+        
