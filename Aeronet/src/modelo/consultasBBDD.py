@@ -36,7 +36,7 @@ class consultaBBDD():
             data = cursor.fetchall()
             for row in data:
                 fechas = []
-                aux = str(row[0])+"  "+ str(row[1])
+                aux = str(row[0])+" "+ str(row[1])
                 #listPhStation.append(row)
                 if aux not in indices:
                     indices.append(aux)

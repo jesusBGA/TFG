@@ -56,25 +56,27 @@ class main:
         screen2.show()''' 
     
 m=main()
-'''datosDistinct = m.getDatosPhStation()
-datosCompletos = m.getDatosCompletos()'''
+
 #print (str(datosCompletos[0].__getattribute__('phStation')))
-
-
 
 #Crear y abrir ventana con interfaz inicial
 #QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
 app = QApplication(sys.argv)
-'''screen = v.mainWindow()
+
+#Ventana principal
+datosDistinct = m.getDatosPhStation()
+datosCompletos = m.getDatosCompletos()
+screen = v.mainWindow()
 screen.setDatosTabla(datosDistinct)
-screen.show()'''
+screen.plotUsoPh(datosDistinct, datosCompletos)
+screen.show()
 
-datos=m.getDatosAOD(10)
-
+#Ventana grafica
+'''datos=m.getDatosAOD(10)
 screen2 = vg.graphWindow()
 screen2.plotGrafica(datos)
-'''screen2.plotCSVGrafica()'''
-screen2.show()
+#screen2.plotCSVGrafica()
+screen2.show()'''
 
 #Cerrar ventana 
 sys.exit(app.exec_())    

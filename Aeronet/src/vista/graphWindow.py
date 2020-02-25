@@ -37,8 +37,8 @@ class graphWindow(QWidget):
         #Grafica y navigation toolbar
         self.fig, self.ax = plt.subplots()
         register_matplotlib_converters()
-        self.ax.xaxis.set_major_formatter(DateFormatter('%d-%m-%Y %H:%M'))
-        self.ax.set_xlim([datetime.datetime(2019, 4, 24, 0, 0),datetime.datetime(2019, 5, 1, 0, 0)])
+        self.ax.xaxis.set_major_formatter(DateFormatter('%d-%m-%Y %H:%M:%S'))
+        self.ax.set_xlim([datetime.datetime(2019, 4, 24, 0, 0, 0),datetime.datetime(2019, 5, 1, 0, 0, 0)])
         self.ax.set_ylim([-1, 4])
         self.fig.autofmt_xdate()
         self.graficaLayout = QVBoxLayout()
@@ -157,7 +157,7 @@ class graphWindow(QWidget):
                 self.ax.plot(row[1], row[2],"r<")    
             #self.ax.plot(row[1], row[2], switcher.get(row[0], "k"))
         self.ax.legend()
-        self.canvas.draw()
+        #self.canvas.draw()
         
     #Plotea los datos del fotometro desde el csv
     def plotCSVGrafica(self):
@@ -173,8 +173,8 @@ class graphWindow(QWidget):
     #Reiniciar y dar formato a los ejes de la gráfica    
     def limpiaPlot(self):
         self.ax.clear()
-        self.ax.xaxis.set_major_formatter(DateFormatter('%d-%m-%Y %H:%M'))
-        self.ax.set_xlim([datetime.datetime(2019, 4, 24, 0, 0),datetime.datetime(2019, 5, 1, 0, 0)])
+        self.ax.xaxis.set_major_formatter(DateFormatter('%d-%m-%Y %H:%M:%S'))
+        self.ax.set_xlim([datetime.datetime(2019, 4, 24, 0, 0, 0),datetime.datetime(2019, 5, 1, 0, 0, 0)])
         self.ax.set_ylim([-1, 4])
         self.fig.autofmt_xdate()
         self.canvas.draw()
