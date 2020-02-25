@@ -60,22 +60,19 @@ class mainWindow(QWidget):
         self.hbox.addWidget(self.quitButton)
         
         #Layout grafica y navigation toolbar
-        self.horizontalLayout = QHBoxLayout()
+        self.horizontalLayout = QVBoxLayout()
         
         #Grafica y navigation toolbar
         self.fig, self.ax = plt.subplots()
         register_matplotlib_converters()
         self.ax.xaxis.set_major_formatter(DateFormatter('%d-%m-%Y %H:%M:%S'))
-        self.ax.set_xlim([datetime.datetime(2019, 4, 24, 0, 0, 0),datetime.datetime(2019, 5, 1, 0, 0, 0)])
-        self.ax.set_ylim([-1, 4])
-        self.fig.autofmt_xdate()
-        self.graficaLayout = QVBoxLayout()
+        self.graficaLayout = QHBoxLayout()
         self.canvas = FigureCanvas(self.fig)
         self.addToolBar = NavigationToolbar(self.canvas, self)
+        self.graficaLayout.addWidget(self.tableWidget)
         self.graficaLayout.addWidget(self.canvas)
-        self.graficaLayout.addWidget(self.addToolBar)
-        self.horizontalLayout.addWidget(self.tableWidget)
         self.horizontalLayout.addLayout(self.graficaLayout)
+        self.horizontalLayout.addWidget(self.addToolBar)
         
         #Layout de la grafica 
         self.mainLayout = QVBoxLayout()
@@ -108,6 +105,7 @@ class mainWindow(QWidget):
         verts = []
         colors = []
         labels = []
+        yPosition = []
         cats={}
         colormapping={}
         
@@ -116,8 +114,9 @@ class mainWindow(QWidget):
             cats[clave]=longitud
             colormapping[clave]="gray"
             labels.insert(0, clave)
+            yPosition.insert(0, longitud)
             longitud-=1
-        print (labels)
+            
         for elemento in datosCompletos:
             fechas = elemento.__getattribute__('dateOfUse')
             phStation = elemento.__getattribute__('phStation')
@@ -138,12 +137,12 @@ class mainWindow(QWidget):
         self.ax.autoscale()
         self.ax.xaxis.set_major_formatter(DateFormatter('%d-%m-%Y %H:%M'))
         self.ax.set_xlim([datetime.datetime(2000, 5, 14, 19, 0),datetime.datetime(2028, 3, 14, 13, 59, 59)])
-        self.ax.set_ylim([0, len(datosPhSt)])
         self.fig.autofmt_xdate()
         
         #self.ax.set_yticks(0-len(datosPhSt))
+        self.ax.set_yticks(yPosition)
         self.ax.set_yticklabels(labels)
-        
+        self.ax.set_ylim([len(datosPhSt)-9.5, len(datosPhSt)+.5])
         
     def on_click(self):
         print("\n")
