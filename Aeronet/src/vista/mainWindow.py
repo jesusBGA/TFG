@@ -34,7 +34,7 @@ class mainWindow(QWidget):
         
         #Título y tamaño de la ventana principal
         self.setWindowTitle("Aeronet")
-        self.setFixedSize(1300,800)
+        self.setFixedSize(1400,800)
         
         #Tabla para mostrar las fechas
         '''self.tableFWidget = QTableWidget()
@@ -62,6 +62,19 @@ class mainWindow(QWidget):
         #Layout grafica y navigation toolbar
         self.horizontalLayout = QVBoxLayout()
         
+        #Botones siguiente pagina y anterior
+        self.pagesLayout = QVBoxLayout()
+        v_widget = QWidget()
+        v_widget.setLayout(self.pagesLayout)
+        v_widget.setFixedWidth(110)
+        #self.pagesLayout.addStretch(1)
+        self.previousButton = QPushButton("Previous 10")
+        self.previousButton.clicked.connect(self.previousPage)
+        self.nextButton = QPushButton("Next 10")
+        self.nextButton.clicked.connect(self.nextPage)
+        self.pagesLayout.addWidget(self.previousButton)
+        self.pagesLayout.addWidget(self.nextButton)
+        
         #Grafica y navigation toolbar
         self.fig, self.ax = plt.subplots()
         register_matplotlib_converters()
@@ -71,6 +84,7 @@ class mainWindow(QWidget):
         self.addToolBar = NavigationToolbar(self.canvas, self)
         self.graficaLayout.addWidget(self.tableWidget)
         self.graficaLayout.addWidget(self.canvas)
+        self.graficaLayout.addWidget(v_widget)
         self.horizontalLayout.addLayout(self.graficaLayout)
         self.horizontalLayout.addWidget(self.addToolBar)
         
@@ -99,9 +113,11 @@ class mainWindow(QWidget):
         #self.tableWidget.setVerticalHeaderLabels(labels)
         
     #Metodo para plotear la grafica de uso
-    def plotUsoPh(self, datosPhSt, datosCompletos):
+    def plotUsoPh(self, datosPhSt, datosCompletos, fechaMin, fechaMax):
         #print (str(datosCompletos[0].__getattribute__('phStation')))
         longitud=len(datosPhSt)
+        self.scroll = longitud
+        self.scrolled = longitud
         verts = []
         colors = []
         labels = []
@@ -136,7 +152,8 @@ class mainWindow(QWidget):
         self.ax.add_collection(bars)
         self.ax.autoscale()
         self.ax.xaxis.set_major_formatter(DateFormatter('%d-%m-%Y %H:%M'))
-        self.ax.set_xlim([datetime.datetime(2000, 5, 14, 19, 0),datetime.datetime(2028, 3, 14, 13, 59, 59)])
+        #self.ax.set_xlim([datetime.datetime(2000, 5, 14, 19, 0),datetime.datetime(2028, 3, 14, 13, 59, 59)])
+        self.ax.set_xlim([fechaMin,fechaMax])
         self.fig.autofmt_xdate()
         
         #self.ax.set_yticks(0-len(datosPhSt))
@@ -148,7 +165,35 @@ class mainWindow(QWidget):
         print("\n")
         for currentQTableWidgetItem in self.tableWidget.selectedItems():
             print(currentQTableWidgetItem.row(), currentQTableWidgetItem.column(), currentQTableWidgetItem.text())
-        
     
+    #Accion de avanzar fotometros en la grafica
+    def nextPage(self):
+        lims=self.ax.get_ylim()
+        min = lims[0]
+        max = lims[1]
+        if self.previousButton.isEnabled()==False:
+            self.previousButton.setEnabled(True)
+        if self.scrolled>10:
+            self.scrolled-=10
+            self.ax.set_ylim([self.scrolled-9.5, self.scrolled+.5])
+            self.canvas.draw_idle()
+            if self.scrolled<=10:
+                self.nextButton.setEnabled(False)
+                
+    #Accion de retroceder fotometros en la grafica
+    def previousPage(self):
+        lims=self.ax.get_ylim()
+        min = lims[0]
+        max = lims[1]  
+        if self.nextButton.isEnabled()==False:
+            self.nextButton.setEnabled(True)
+        if self.scrolled<(self.scroll-9):
+            self.scrolled+=10
+            self.ax.set_ylim([self.scrolled-9.5, self.scrolled+.5])
+            self.canvas.draw_idle()
+            if self.scroll<self.scrolled+10:
+                self.previousButton.setEnabled(False)
+            
     def quit(self):
         print("Salir")
+    

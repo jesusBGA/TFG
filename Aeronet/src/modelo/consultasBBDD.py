@@ -8,6 +8,7 @@ import src.modelo.globales as g
 import src.modelo.phStationObject as objecto
 import sys
 import csv
+from datetime import datetime, timedelta
 
 #Clase para realizar las diferentes consultas a la BBDD
 class consultaBBDD():  
@@ -64,7 +65,11 @@ class consultaBBDD():
     def minFecha(self, cursor):
         try:    
             cursor.execute(g.sql3)
-            return cursor.fetchone()
+            fechaMin = cursor.fetchone()
+            #Restamos un día a la fecha mínima para dar un poco de margen
+            dia = timedelta(days=1)
+            fechaMin = fechaMin[0] - dia
+            return fechaMin
         except ValueError:
             print(g.err1)
         
@@ -72,7 +77,12 @@ class consultaBBDD():
     def maxFecha(self, cursor):
         try:
             cursor.execute(g.sql4)
-            return cursor.fetchone()
+            fechaMax = cursor.fetchone()
+            #Añadimos un día a la fecha maxima para dar un poco de margen
+            dia = timedelta(days=1)
+            fechaMax = datetime.strptime(fechaMax[0], '%Y-%m-%d %H:%M:%S')
+            fechaMax = fechaMax + dia
+            return fechaMax
         except ValueError:
             print(g.err1)
     

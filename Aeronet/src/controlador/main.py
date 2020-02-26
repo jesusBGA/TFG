@@ -10,6 +10,7 @@ from matplotlib.backends.backend_qt5agg import (NavigationToolbar2QT as Navigati
 
 import numpy as np
 #import random
+from datetime import datetime, timedelta
 import pymysql
 import sys
 
@@ -47,6 +48,14 @@ class main:
         datos=c.consultaBBDD.getAODChannelsCSV(self, self.cursor, ph)
         return datos
     
+    #Devuelve la fecha minima de uso de los fotometros
+    def getFechaMin(self):
+        return c.consultaBBDD.minFecha(self, self.cursor)
+        
+    #Devuelve la fecha maxima de uso de los fotometros
+    def getFechaMax(self):    
+        return c.consultaBBDD.maxFecha(self, self.cursor)
+        
     #Invoca la ventana graphWindow, la cual muestra datos para un fotometro concreto
     def graphWindow(self, ph):
         print(ph[0])
@@ -66,9 +75,11 @@ app = QApplication(sys.argv)
 #Ventana principal
 datosDistinct = m.getDatosPhStation()
 datosCompletos = m.getDatosCompletos()
+fechaMin = m.getFechaMin()
+fechaMax = m.getFechaMax()
 screen = v.mainWindow()
 screen.setDatosTabla(datosDistinct)
-screen.plotUsoPh(datosDistinct, datosCompletos)
+screen.plotUsoPh(datosDistinct, datosCompletos, fechaMin, fechaMax)
 screen.show()
 
 #Ventana grafica
