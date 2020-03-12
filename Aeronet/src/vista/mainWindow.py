@@ -124,6 +124,7 @@ class mainWindow(QWidget):
         self.fMin=fechaMin
         self.fMax=fechaMax
         self.datosPH=datosPhSt
+        self.datosC=datosCompletos
         verts = []
         colors = []
         labels = []
@@ -134,10 +135,20 @@ class mainWindow(QWidget):
         for data in datosPhSt:
             clave=str(data[0])+" "+str(data[1])
             cats[clave]=longitud
-            colormapping[clave]="gray"
             labels.insert(0, clave)
             yPosition.insert(0, longitud)
             longitud-=1
+        
+        for e in self.datosC:
+            clave = e.__getattribute__('phStation')
+            if (e.__getattribute__('eprom_subtype')== 'triple'):
+                colormapping[clave]="tab:orange"
+            elif ((e.__getattribute__('eprom_subtype')== 'digital') & (e.__getattribute__('eprom_type')== 'extended')):
+                colormapping[clave]="tab:brown"
+            elif ((e.__getattribute__('eprom_subtype')!= 'triple') & (e.__getattribute__('eprom_type')== 'dualpolar')):
+                colormapping[clave]="tab:blue"
+            else:    
+                colormapping[clave]="gray"
             
         for elemento in datosCompletos:
             fechas = elemento.__getattribute__('dateOfUse')
