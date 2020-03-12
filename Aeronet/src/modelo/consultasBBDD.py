@@ -7,7 +7,6 @@ Created on 29 ene. 2020
 import src.modelo.globales as g
 import src.modelo.phStationObject as objecto
 import sys
-import csv
 from datetime import datetime, timedelta
 
 #Clase para realizar las diferentes consultas a la BBDD
@@ -72,19 +71,7 @@ class consultaBBDD():
         except:
             print(sys.exc_info())
            
-    #Metodo para obtener los datos AOD para un fotometro y unas fechas dadas y lo guarda en un csv
-    def getAODChannelsCSV(self, cursor, ph):
-        try:
-            cursor.execute("select C.channel, C.date, avg(C.aod) as aod FROM caelis.cml_aod_channel C JOIN caelis.cml_aod A ON (A.ph=C.ph && A.date=C.date) WHERE (C.ph=%s && C.aod is not null && C.date between '2019-04-25 00:00:01' and '2019-05-01 00:00:01') GROUP BY C.channel, C.date;", (ph))
-            data = cursor.fetchall()
-            csvSalida = open('../modelo/aod.csv', 'a', newline='')
-            salida = csv.writer(csvSalida, delimiter='|', 
-                        quotechar='"', 
-                        quoting=csv.QUOTE_ALL)
-            for row in data:
-                salida.writerow(row)
-        except:
-            print(sys.exc_info())
+
             
 #Método para tranformar la lista de fotometros consultada para su tratamiento
 def toPhStationObject(data):

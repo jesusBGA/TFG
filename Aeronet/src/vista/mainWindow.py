@@ -67,6 +67,7 @@ class mainWindow(QWidget):
         v_widget = QWidget()
         v_widget.setLayout(self.pagesLayout)
         v_widget.setFixedWidth(110)
+        self.contador=2
         self.previousButton = QPushButton("Previous 10")
         self.previousButton.clicked.connect(self.previousPage)
         self.nextButton = QPushButton("Next 10")
@@ -89,6 +90,11 @@ class mainWindow(QWidget):
         self.graficaLayout.addWidget(v_widget)
         self.horizontalLayout.addLayout(self.graficaLayout)
         self.horizontalLayout.addWidget(self.toolBar)
+        
+        self.widget = QWidget()
+        self.scroll = QScrollArea(self.widget)
+        self.scroll.setWidget(self.canvas)
+        self.canvas.mpl_connect("scroll_event", self.scrolling)
         
         #Layout de la grafica 
         self.mainLayout = QVBoxLayout()
@@ -202,16 +208,36 @@ class mainWindow(QWidget):
             self.nextButton.setEnabled(True)
         if self.scrolled<(self.scroll-9):
             self.scrolled+=10
-            self.ax.set_ylim([self.scrolled-9.5, self.scrolled+.5])
-            self.canvas.draw_idle()
             if self.scroll<self.scrolled+10:
                 self.previousButton.setEnabled(False)
-    
+        else:
+            self.scrolled= self.scroll
+                
+        self.ax.set_ylim([self.scrolled-9.5, self.scrolled+.5])
+        self.canvas.draw_idle()
+        
+        
     #Accion de reiniciar el zoom de la gráfica
     def resetZoom(self):
         self.ax.set_xlim([self.fMin,self.fMax])
         self.ax.set_ylim([self.scrolled-9.5, self.scrolled+.5])
         self.canvas.draw_idle()
+    
+    def scrolling(self, event):
+        if (self.contador%2)==0:
+            self.contador+=1
+            if event.button=="down":
+                if self.scrolled>2:
+                    self.scrolled-=2
+            else:
+                if self.scrolled<(self.scroll-2):
+                    self.scrolled+=2
+                else:
+                    self.scrolled= self.scroll
+            self.ax.set_ylim([self.scrolled-9.5, self.scrolled+.5])
+            self.canvas.draw_idle()
+        else:
+            self.contador+=1
             
     def quit(self):
         print("Salir")
@@ -234,4 +260,5 @@ class mainWindow(QWidget):
         min = math.floor(lims[0])
         max = math.ceil(lims[1]) 
         self.scrolled=max
+    
     
