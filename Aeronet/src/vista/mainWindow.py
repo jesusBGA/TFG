@@ -4,26 +4,26 @@ Created on 29 ene. 2020
 @author: Jesus Brezmes Gil-Albarellos
 '''
 from PyQt5 import QtCore, QtGui, QtWidgets
-from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar, FigureCanvasQTAgg as FigureCanvas
+#from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar, FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 
 from mysql.connector import (connection)
 from PyQt5.QtWidgets import *
-from PyQt5 import QtCore
 from PyQt5.QtGui import QFont
-import sys
 from pandas.plotting import register_matplotlib_converters
-import datetime
 from matplotlib.dates import DateFormatter
 
-import datetime as dt
+from matplotlib.dates import num2date
+import math
 import matplotlib.pyplot as plt
+plt.rcParams['toolbar'] = 'toolmanager'
+from matplotlib.backend_tools import ToolBase, ToolToggleBase
 import matplotlib.dates as mdates
 from matplotlib.collections import PolyCollection
 from mysql.connector import (connection)
-from setuptools.windows_support import hide_file
 
-
+from src.vista.NavigationToolbar import NavigationToolbar
 
 #Ventana principal de la aplicación
 class mainWindow(QWidget):
@@ -62,18 +62,20 @@ class mainWindow(QWidget):
         #Layout grafica y navigation toolbar
         self.horizontalLayout = QVBoxLayout()
         
-        #Botones siguiente pagina y anterior
+        #Botones reiniciar zoom, siguiente pagina y anterior
         self.pagesLayout = QVBoxLayout()
         v_widget = QWidget()
         v_widget.setLayout(self.pagesLayout)
         v_widget.setFixedWidth(110)
-        #self.pagesLayout.addStretch(1)
         self.previousButton = QPushButton("Previous 10")
         self.previousButton.clicked.connect(self.previousPage)
         self.nextButton = QPushButton("Next 10")
         self.nextButton.clicked.connect(self.nextPage)
+        self.resetZoomButton = QPushButton("Reset zoom")
+        self.resetZoomButton.clicked.connect(self.resetZoom)
         self.pagesLayout.addWidget(self.previousButton)
         self.pagesLayout.addWidget(self.nextButton)
+        self.pagesLayout.addWidget(self.resetZoomButton)
         
         #Grafica y navigation toolbar
         self.fig, self.ax = plt.subplots()
@@ -81,12 +83,12 @@ class mainWindow(QWidget):
         self.ax.xaxis.set_major_formatter(DateFormatter('%d-%m-%Y %H:%M:%S'))
         self.graficaLayout = QHBoxLayout()
         self.canvas = FigureCanvas(self.fig)
-        self.addToolBar = NavigationToolbar(self.canvas, self)
+        self.toolBar = NavigationToolbar(self.canvas, self)
         self.graficaLayout.addWidget(self.tableWidget)
         self.graficaLayout.addWidget(self.canvas)
         self.graficaLayout.addWidget(v_widget)
         self.horizontalLayout.addLayout(self.graficaLayout)
-        self.horizontalLayout.addWidget(self.addToolBar)
+        self.horizontalLayout.addWidget(self.toolBar)
         
         #Layout de la grafica 
         self.mainLayout = QVBoxLayout()
@@ -100,6 +102,7 @@ class mainWindow(QWidget):
      
     #Metodo para rellenar la tabla con fotometro y estacion     
     def setDatosTabla(self, datos):
+        self.lista = datos
         self.tableWidget.setRowCount(len(datos))
         contador=0  
         #labels=[] 
@@ -118,6 +121,9 @@ class mainWindow(QWidget):
         longitud=len(datosPhSt)
         self.scroll = longitud
         self.scrolled = longitud
+        self.fMin=fechaMin
+        self.fMax=fechaMax
+        self.datosPH=datosPhSt
         verts = []
         colors = []
         labels = []
@@ -151,7 +157,7 @@ class mainWindow(QWidget):
         plt.grid(color='Black', linestyle='solid')
         self.ax.add_collection(bars)
         self.ax.autoscale()
-        self.ax.xaxis.set_major_formatter(DateFormatter('%d-%m-%Y %H:%M'))
+        self.ax.xaxis.set_major_formatter(DateFormatter('%d-%m-%Y %H:%M:%S'))
         #self.ax.set_xlim([datetime.datetime(2000, 5, 14, 19, 0),datetime.datetime(2028, 3, 14, 13, 59, 59)])
         self.ax.set_xlim([fechaMin,fechaMax])
         self.fig.autofmt_xdate()
@@ -161,11 +167,7 @@ class mainWindow(QWidget):
         self.ax.set_yticklabels(labels)
         self.ax.set_ylim([len(datosPhSt)-9.5, len(datosPhSt)+.5])
         
-    def on_click(self):
-        print("\n")
-        for currentQTableWidgetItem in self.tableWidget.selectedItems():
-            print(currentQTableWidgetItem.row(), currentQTableWidgetItem.column(), currentQTableWidgetItem.text())
-    
+        
     #Accion de avanzar fotometros en la grafica
     def nextPage(self):
         lims=self.ax.get_ylim()
@@ -193,7 +195,32 @@ class mainWindow(QWidget):
             self.canvas.draw_idle()
             if self.scroll<self.scrolled+10:
                 self.previousButton.setEnabled(False)
+    
+    #Accion de reiniciar el zoom de la gráfica
+    def resetZoom(self):
+        self.ax.set_xlim([self.fMin,self.fMax])
+        self.ax.set_ylim([self.scrolled-9.5, self.scrolled+.5])
+        self.canvas.draw_idle()
             
     def quit(self):
         print("Salir")
+        
+    def on_click(self):
+        print("\n")
+        for currentQTableWidgetItem in self.tableWidget.selectedItems():
+            print(currentQTableWidgetItem.row(), currentQTableWidgetItem.column(), currentQTableWidgetItem.text())
+            phStation = currentQTableWidgetItem.text()
+        fecha = self.ax.get_xlim()
+        f1 = str(num2date(fecha[0]))
+        f2 = str(num2date(fecha[1]))
+        fMin = f1[0:19]
+        fMax = f2[0:19]
+        #main.graphWindow(self, phStation, fMin ,fMax)
+           
+    def on_press(self, event):
+        print(event.name)
+        lims=self.ax.get_ylim()
+        min = math.floor(lims[0])
+        max = math.ceil(lims[1]) 
+        self.scrolled=max
     

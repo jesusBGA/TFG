@@ -43,9 +43,9 @@ class graphWindow(QWidget):
         self.fig.autofmt_xdate()
         self.graficaLayout = QVBoxLayout()
         self.canvas = FigureCanvas(self.fig)
-        self.addToolBar = NavigationToolbar(self.canvas, self)
+        self.toolBar = NavigationToolbar(self.canvas, self)
         self.graficaLayout.addWidget(self.canvas)
-        self.graficaLayout.addWidget(self.addToolBar)
+        self.graficaLayout.addWidget(self.toolBar)
         self.horizontalLayout.addLayout(self.graficaLayout)
         
         #Layout de todos los botones
@@ -177,14 +177,11 @@ class graphWindow(QWidget):
         self.ax.set_xlim([datetime.datetime(2019, 4, 24, 0, 0, 0),datetime.datetime(2019, 5, 1, 0, 0, 0)])
         self.ax.set_ylim([-1, 4])
         self.fig.autofmt_xdate()
-        self.canvas.draw()
-        self.canvas.flush_events()
+        self.canvas.draw_idle()
         
     #Acción boton Wext    
     def Wext_clicked(self):
         self.limpiaPlot()
-        self.ax.plot(datetime.datetime(2019, 4, 30, 0, 0), 2.8, "ro")
-        self.canvas.draw()
         
     #Acción boton Wext    
     def WaterVapor_clicked(self):

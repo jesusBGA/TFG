@@ -19,11 +19,18 @@ import src.vista.mainWindow as v
 import src.vista.graphWindow as vg
 import src.modelo.consultasBBDD as o
 
-class main:
+class graphController:
     
     def __init__(self): 
         self.db = pymysql.connect(g.database_host, g.user, g.password, g.database_name)
         self.cursor = self.db.cursor()
+        app = QApplication(sys.argv)
+        datos=self.getDatosAOD(10)
+        self.screen = vg.graphWindow()
+        self.screen.plotGrafica(datos)
+        #screen2.plotCSVGrafica()
+        self.screen.show()
+        sys.exit(app.exec_())
         
     #Devuelve una lista de fotometro, fecha, channel, aod
     def getDatosAOD(self, ph):
