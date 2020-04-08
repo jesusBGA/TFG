@@ -16,7 +16,6 @@ import matplotlib.backends.qt_editor.figureoptions as figureoptions
 
 from PyQt5 import (
     QtCore, QtGui, QtWidgets)
-from matplotlib import backend_bases
 
 cursord = {
     cursors.MOVE: QtCore.Qt.SizeAllCursor,
@@ -160,8 +159,7 @@ class NavigationToolbar(NavigationToolbar2, QtWidgets.QToolBar):
     def remove_rubberband(self):
         self.canvas.drawRectangle(None)
 
-    def moveCursor(self, *args):
-        #matplotlib.backend_bases.home()
-        print('')
-        super().home(*args)
+    def moveCursor(self):
+        self._nav_stack.clear()
     
+

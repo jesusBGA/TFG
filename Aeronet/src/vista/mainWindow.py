@@ -6,7 +6,6 @@ Created on 29 ene. 2020
 from PyQt5 import QtCore, QtGui, QtWidgets
 #from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar, FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
 
 from mysql.connector import (connection)
 from PyQt5.QtWidgets import *
@@ -19,10 +18,8 @@ import math
 import matplotlib.pyplot as plt
 from matplotlib import backend_bases
 plt.rcParams['toolbar'] = 'toolmanager'
-from matplotlib.backend_tools import ToolBase, ToolToggleBase
 import matplotlib.dates as mdates
 from matplotlib.collections import PolyCollection
-from mysql.connector import (connection)
 
 from src.vista.NavigationToolbar import NavigationToolbar
 
@@ -88,9 +85,6 @@ class mainWindow(QWidget):
         self.pagesLayout.addWidget(self.nextButton)
         self.pagesLayout.addWidget(self.resetZoomButton)'''
         
-        self.resetZoomButton = QPushButton("Reset zoom")
-        self.resetZoomButton.clicked.connect(self.resetZoom)
-        
         #Grafica y navigation toolbar
         self.toolbarLayout = QHBoxLayout()
         self.fig, self.ax = plt.subplots()
@@ -106,7 +100,6 @@ class mainWindow(QWidget):
         
         self.canvas = FigureCanvas(self.fig)
         self.toolBar = NavigationToolbar(self.canvas, self)
-        self.toolBar.setMaximumSize(100, 50)
         
         self.canvasL.addWidget(self.canvas)
 
@@ -116,7 +109,6 @@ class mainWindow(QWidget):
         self.graficaLayout.addWidget(v_widget)
         self.horizontalLayout.addLayout(self.graficaLayout)
         self.toolbarLayout.addWidget(self.toolBar)
-        self.toolbarLayout.addWidget(self.resetZoomButton)
         self.horizontalLayout.addLayout(self.toolbarLayout)
         self.horizontalLayout.setContentsMargins(10, 10, 10, 10)
         
@@ -241,8 +233,7 @@ class mainWindow(QWidget):
             self.canvas.draw_idle()
             self.scrolled=value
         
-        self.ax.set_yticklabels([])
-        self.ax.set_xticklabels([])
+        self.toolBar.moveCursor()
                               
     def scrolling(self, event):
         if (self.contador%2)==0:
