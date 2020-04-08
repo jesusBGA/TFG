@@ -39,8 +39,8 @@ class main:
         self.db = pymysql.connect(g.database_host, g.user, g.password, g.database_name)
         self.cursor = self.db.cursor()
         #self.cursor.query('SET GLOBAL connection_timeout=600')
-        #mainWController()
-        graphController()
+        mainWController()
+        #graphController()
         
     
 

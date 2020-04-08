@@ -9,12 +9,14 @@ import sys
 
 import matplotlib
 
+from matplotlib import cbook
 from matplotlib.backend_bases import (
      NavigationToolbar2, cursors)
 import matplotlib.backends.qt_editor.figureoptions as figureoptions
 
 from PyQt5 import (
     QtCore, QtGui, QtWidgets)
+from matplotlib import backend_bases
 
 cursord = {
     cursors.MOVE: QtCore.Qt.SizeAllCursor,
@@ -30,11 +32,12 @@ class NavigationToolbar(NavigationToolbar2, QtWidgets.QToolBar):
         """ coordinates: should we show the coordinates on the right? """
         self.canvas = canvas
         self.parent = parent
+        self._nav_stack = cbook.Stack()
         self.coordinates = coordinates
         self._actions = {}
         """A mapping of toolitem method names to their QActions"""
         self.toolitems = (
-        #('Home', 'Reset original view', 'home', 'home'),
+        ('Home', 'Reset original view', 'home', 'home'),
         ('Back', 'Back to previous view', 'back', 'back'),
         ('Forward', 'Forward to next view', 'forward', 'forward'),
         (None, None, None, None),
@@ -157,5 +160,8 @@ class NavigationToolbar(NavigationToolbar2, QtWidgets.QToolBar):
     def remove_rubberband(self):
         self.canvas.drawRectangle(None)
 
-    
+    def moveCursor(self, *args):
+        #matplotlib.backend_bases.home()
+        print('')
+        super().home(*args)
     
