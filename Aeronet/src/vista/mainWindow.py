@@ -54,7 +54,7 @@ class mainWindow(QWidget):
         self.tableWidget.verticalScrollBar().setDisabled(True)
         self.tablaL.addItem(QtWidgets.QSpacerItem(0, 24))
         self.tablaL.addWidget(self.tableWidget)
-        self.tablaL.addItem(QtWidgets.QSpacerItem(0, 24))
+        self.tablaL.addItem(QtWidgets.QSpacerItem(0, 25))
         
         
         self.quitButton = QPushButton("Salir")
@@ -132,10 +132,20 @@ class mainWindow(QWidget):
         
         #Layout de la grafica 
         self.mainLayout = QVBoxLayout()
-        self.mainLayout.setContentsMargins(10, 10, 10, 180)
+        self.mainLayout.setContentsMargins(10, 10, 10, 178)
         self.setLayout(self.mainLayout)
         
+        #Layout de la barra temporal
+        self.timeLayout = QHBoxLayout()
+        self.tLayout = QHBoxLayout()
+        t_widget = QWidget()
+        t_widget.setLayout(self.tLayout)
+        self.timeLayout.addItem(QtWidgets.QSpacerItem(60, 0))
+        self.timeLayout.addWidget(t_widget)
+        self.timeLayout.addItem(QtWidgets.QSpacerItem(60, 0))
+        
         '''self.mainLayout.addWidget(self.tableFWidget)'''
+        #self.mainLayout.addLayout(self.timeLayout)
         self.mainLayout.addLayout(self.horizontalLayout)
         self.mainLayout.addLayout(self.hbox)
         self.setLayout(self.mainLayout) 
@@ -166,6 +176,7 @@ class mainWindow(QWidget):
         self.fMax=fechaMax
         self.datosPH=datosPhSt
         self.datosC=datosCompletos
+        self.alturaTabla=self.tableWidget.height()
         verts = []
         colors = []
         labels = []
@@ -242,9 +253,9 @@ class mainWindow(QWidget):
         fmin= self.getXMin()
         fmax= self.getXMax()
         self.toolBar.push_current()
-        self.changeTableW()
-        if ((fmin==str(self.fMin)) & (fmax==str(self.fMax))):
-            self.toolBar.clearCursor()
+        #self.changeTableW()
+        '''if ((fmin==str(self.fMin)) & (fmax==str(self.fMax))):'''
+        self.toolBar.clearCursor()
     
     #Obtener valores minimo actual del eje x
     def getXMin(self):
@@ -270,12 +281,21 @@ class mainWindow(QWidget):
     
     #Modifica la tabla tras la utilización del slider
     def changeTableW(self):
+        fmin= self.getXMin()
+        fmax= self.getXMax()
         minY = self.getYMin()
-        if (minY!=0):
-            minY-=.5
         maxY = self.getYMax()
-        if (maxY!=15):
-            maxY-=.5
+        if ((fmin==str(self.fMin)) & (fmax==str(self.fMax))):
+            if (minY!=0):
+                minY-=.5
+            if (maxY!=15):
+                maxY-=.5
+        else:
+            if (minY!=0):
+                minY = math.floor(minY)
+            if (maxY!=15):
+                maxY = math.ceil(maxY)
+                maxY-=1
         rows=0
         d = maxY-minY
         dS = self.scroll-self.scrollBar.value()
@@ -289,14 +309,25 @@ class mainWindow(QWidget):
         else:
             rows=15
         self.changeRows(rows, maxY)
+        #self.tableWidget.resizeRowsToContents()  Ajustar alto de las celdas
+        #self.tableWidget.setRowHeight(0, 40)
     
     #Puebla la tabla con el numero de filas segun el zoom aplicado      
     def changeRows(self, nRows, maxY):
         contador=0
+        altura = 0
         maxY=int(maxY)
         value =self.scroll-maxY
+        if (nRows==1):
+            altura=self.alturaTabla
+        elif (nRows==15):
+            altura = self.alturaTabla / 15
+        else:
+            altura = self.alturaTabla / nRows
+            
         if (nRows>=1):
             self.tableWidget.clear()
+            self.tableWidget.reset()
             self.tableWidget.setRowCount(nRows)
             while (contador<nRows):
                 i = self.datosPH[value]
@@ -305,12 +336,12 @@ class mainWindow(QWidget):
                 cellinfo.setFlags( QtCore.Qt.ItemIsSelectable |  QtCore.Qt.ItemIsEnabled )
                 self.tableWidget.setItem(contador,0, cellinfo)
                 #labels.append(str(dato[0])+" "+str(dato[1]))
+                self.tableWidget.setRowHeight(contador, altura)
                 contador+=1
                 value+=1
     
-    def drawEvent(self):
-        self.changeTableW()
-          
+    def drawEvent(self, event):
+        self.changeTableW() 
           
                              
     def scrolling(self, event):
