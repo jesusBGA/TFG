@@ -41,13 +41,21 @@ class mainWindow(QWidget):
         self.tableFWidget.setMaximumHeight(20)'''
         
         #Tabla para mostrar los datos
+        self.tablaL = QVBoxLayout()
         self.tableWidget = QTableWidget()
         self.tableWidget.setColumnCount(1)
-        self.tableWidget.setFixedWidth(100)
+        self.tableWidget.setFixedWidth(140)
+        self.tableWidget.setColumnWidth(0, 140)
         self.tableWidget.doubleClicked.connect(self.on_click)
         self.tableWidget.setFont(QFont('Times New Roman', 10, QFont.Bold))
         self.tableWidget.horizontalHeader().hide()
         self.tableWidget.verticalHeader().hide()
+        self.tableWidget.horizontalScrollBar().setDisabled(True)
+        self.tableWidget.verticalScrollBar().setDisabled(True)
+        self.tablaL.addItem(QtWidgets.QSpacerItem(0, 24))
+        self.tablaL.addWidget(self.tableWidget)
+        self.tablaL.addItem(QtWidgets.QSpacerItem(0, 24))
+        
         
         self.quitButton = QPushButton("Salir")
         self.quitButton.clicked.connect(self.quit)
@@ -61,18 +69,20 @@ class mainWindow(QWidget):
         self.horizontalLayout = QVBoxLayout()
         
         #Botones reiniciar zoom, siguiente pagina y anterior
-        self.pagesLayout = QVBoxLayout()
+        '''self.pagesLayout = QVBoxLayout()
         v_widget = QWidget()
         v_widget.setLayout(self.pagesLayout)
-        v_widget.setFixedWidth(60)
+        v_widget.setFixedWidth(50)'''
         self.contador=2
         self.scrollLayout = QVBoxLayout()
         s_widget = QWidget()
-        s_widget.setFixedWidth(60)
         s_widget.setLayout(self.scrollLayout)
+        s_widget.setFixedWidth(50)
         self.scrollBar = QtWidgets.QScrollBar()
         self.scrollBar.setFixedWidth(30)
         self.scrollBar.sliderMoved.connect(self.sliderValue)
+        self.scrollBar.sliderPressed.connect(self.sliderValue)
+        self.scrollBar.valueChanged.connect(self.sliderValue)
         '''self.previousButton = QPushButton("Previous 10")
         self.previousButton.clicked.connect(self.previousPage)
         self.nextButton = QPushButton("Next 10")
@@ -80,7 +90,7 @@ class mainWindow(QWidget):
         self.resetZoomButton = QPushButton("Reset zoom")
         self.resetZoomButton.clicked.connect(self.resetZoom)'''
         self.scrollLayout.addWidget(self.scrollBar)
-        self.pagesLayout.addWidget(s_widget)
+        #self.pagesLayout.addWidget(s_widget)
         '''self.pagesLayout.addWidget(self.previousButton)
         self.pagesLayout.addWidget(self.nextButton)
         self.pagesLayout.addWidget(self.resetZoomButton)'''
@@ -103,10 +113,11 @@ class mainWindow(QWidget):
         
         self.canvasL.addWidget(self.canvas)
 
-        self.graficaLayout.addWidget(self.tableWidget)
+        
+        self.graficaLayout.addLayout(self.tablaL)
         #self.graficaLayout.addWidget(self.canvas)
         self.graficaLayout.addWidget(c_widget)
-        self.graficaLayout.addWidget(v_widget)
+        self.graficaLayout.addWidget(s_widget)
         self.horizontalLayout.addLayout(self.graficaLayout)
         self.toolbarLayout.addWidget(self.toolBar)
         self.horizontalLayout.addLayout(self.toolbarLayout)
@@ -116,6 +127,8 @@ class mainWindow(QWidget):
         self.scroll = QScrollArea(self.widget)
         self.scroll.setWidget(self.canvas)
         self.canvas.mpl_connect("scroll_event", self.scrolling)'''
+        
+        self.canvas.mpl_connect("draw_event", self.drawEvent)
         
         #Layout de la grafica 
         self.mainLayout = QVBoxLayout()
@@ -206,20 +219,10 @@ class mainWindow(QWidget):
         self.ax.set_ylim([len(datosPhSt)-14.5, len(datosPhSt)+.5])
         self.ax.set_yticklabels([])
         self.fig.tight_layout()                      
-            
-    #Accion de reiniciar el zoom de la gráfica
-    def resetZoom(self):
-        self.ax.set_xlim([self.fMin,self.fMax])
-        if (self.scrolled<=15):
-            self.ax.set_ylim([0, 15])
-        else:
-            self.ax.set_ylim([self.scrolled-14.5, self.scrolled+.5])
-        self.canvas.draw_idle()
     
     #Accion del slider para navegar por la gráfica
     def sliderValue(self):
         value = self.scroll - self.scrollBar.value()
-        print(value)
         if ((self.scroll-value)<5):
             self.ax.set_ylim([self.scroll-14.5, self.scroll+.5])
             self.canvas.draw_idle()
@@ -233,8 +236,83 @@ class mainWindow(QWidget):
             self.canvas.draw_idle()
             self.scrolled=value
         
-        self.toolBar.moveCursor()
-                              
+        #print(self.tableWidget.rowAt(0))
+        #self.tableWidget.scrollToItem(self.tableWidget.itemAt(0, 19), QAbstractItemView.EnsureVisible | QAbstractItemView.PositionAtTop )
+        #Control para no borrar registro de acciones si se mueve el scroll con el zoom activado
+        fmin= self.getXMin()
+        fmax= self.getXMax()
+        self.toolBar.push_current()
+        self.changeTableW()
+        if ((fmin==str(self.fMin)) & (fmax==str(self.fMax))):
+            self.toolBar.clearCursor()
+    
+    #Obtener valores minimo actual del eje x
+    def getXMin(self):
+        fecha = self.ax.get_xlim()
+        fmin = str(num2date(fecha[0]))
+        return fmin[0:19]
+    
+    #Obtener valor maximo actual del eje x
+    def getXMax(self):
+        fecha = self.ax.get_ylim()
+        fmax = str(num2date(fecha[1]))
+        return fmax[0:19]
+    
+    #Obtener valores minimo actual del eje y
+    def getYMin(self):
+        minY = self.ax.get_ylim()
+        return minY[0]
+    
+    #Obtener valor maximo actual del eje y
+    def getYMax(self):
+        maxY = self.ax.get_ylim()
+        return maxY[1]
+    
+    #Modifica la tabla tras la utilización del slider
+    def changeTableW(self):
+        minY = self.getYMin()
+        if (minY!=0):
+            minY-=.5
+        maxY = self.getYMax()
+        if (maxY!=15):
+            maxY-=.5
+        rows=0
+        d = maxY-minY
+        dS = self.scroll-self.scrollBar.value()
+        if (d<15):
+            if(dS<15):
+                rows=15
+            else:
+                rows = d 
+        elif (dS<15 & dS!=0):
+            rows = dS
+        else:
+            rows=15
+        self.changeRows(rows, maxY)
+    
+    #Puebla la tabla con el numero de filas segun el zoom aplicado      
+    def changeRows(self, nRows, maxY):
+        contador=0
+        maxY=int(maxY)
+        value =self.scroll-maxY
+        if (nRows>=1):
+            self.tableWidget.clear()
+            self.tableWidget.setRowCount(nRows)
+            while (contador<nRows):
+                i = self.datosPH[value]
+                item = str(i[0])+"  "+i[1] 
+                cellinfo = QTableWidgetItem(item)
+                cellinfo.setFlags( QtCore.Qt.ItemIsSelectable |  QtCore.Qt.ItemIsEnabled )
+                self.tableWidget.setItem(contador,0, cellinfo)
+                #labels.append(str(dato[0])+" "+str(dato[1]))
+                contador+=1
+                value+=1
+    
+    def drawEvent(self):
+        self.changeTableW()
+          
+          
+                             
     def scrolling(self, event):
         if (self.contador%2)==0:
             self.contador+=1
@@ -304,6 +382,15 @@ class mainWindow(QWidget):
             self.scrolled= self.scroll
                 
         self.ax.set_ylim([self.scrolled-9.5, self.scrolled+.5])
+        self.canvas.draw_idle()
+        
+    #Accion de reiniciar el zoom de la gráfica
+    def resetZoom(self):
+        self.ax.set_xlim([self.fMin,self.fMax])
+        if (self.scrolled<=15):
+            self.ax.set_ylim([0, 15])
+        else:
+            self.ax.set_ylim([self.scrolled-14.5, self.scrolled+.5])
         self.canvas.draw_idle()
     
     
