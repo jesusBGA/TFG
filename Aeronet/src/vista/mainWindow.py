@@ -45,6 +45,7 @@ class mainWindow(QWidget):
         self.tableWidget = QTableWidget()
         self.tableWidget.setColumnCount(1)
         self.tableWidget.setFixedWidth(140)
+        self.tableWidget.setFixedHeight(450)
         self.tableWidget.setColumnWidth(0, 140)
         self.tableWidget.doubleClicked.connect(self.on_click)
         self.tableWidget.setFont(QFont('Times New Roman', 10, QFont.Bold))
@@ -265,7 +266,7 @@ class mainWindow(QWidget):
     
     #Obtener valor maximo actual del eje x
     def getXMax(self):
-        fecha = self.ax.get_ylim()
+        fecha = self.ax.get_xlim()
         fmax = str(num2date(fecha[1]))
         return fmax[0:19]
     
