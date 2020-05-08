@@ -26,9 +26,11 @@ from src.vista.NavigationToolbar import NavigationToolbar
 #Ventana principal de la aplicación
 class mainWindow(QWidget):
 
-    def __init__(self):
+    def __init__(self, main_controller):
         
         QWidget.__init__(self)
+        
+        self.main_controller = main_controller
         
         #Título y tamaño de la ventana principal
         self.setWindowTitle("Aeronet")
@@ -69,7 +71,7 @@ class mainWindow(QWidget):
         #Layout grafica y navigation toolbar
         self.horizontalLayout = QVBoxLayout()
         
-        #Botones reiniciar zoom, siguiente pagina y anterior
+        #Scrollbar para navegar interactivamente por la grafica
         '''self.pagesLayout = QVBoxLayout()
         v_widget = QWidget()
         v_widget.setLayout(self.pagesLayout)
@@ -84,13 +86,13 @@ class mainWindow(QWidget):
         self.scrollBar.sliderMoved.connect(self.sliderValue)
         self.scrollBar.sliderPressed.connect(self.sliderValue)
         self.scrollBar.valueChanged.connect(self.sliderValue)
+        self.scrollLayout.addWidget(self.scrollBar)
         '''self.previousButton = QPushButton("Previous 10")
         self.previousButton.clicked.connect(self.previousPage)
         self.nextButton = QPushButton("Next 10")
         self.nextButton.clicked.connect(self.nextPage)
         self.resetZoomButton = QPushButton("Reset zoom")
         self.resetZoomButton.clicked.connect(self.resetZoom)'''
-        self.scrollLayout.addWidget(self.scrollBar)
         #self.pagesLayout.addWidget(s_widget)
         '''self.pagesLayout.addWidget(self.previousButton)
         self.pagesLayout.addWidget(self.nextButton)
@@ -104,23 +106,39 @@ class mainWindow(QWidget):
         register_matplotlib_converters()
         self.ax.xaxis.set_major_formatter(DateFormatter('%d-%m-%Y %H:%M:%S'))
         self.graficaLayout = QHBoxLayout()
-        
         self.canvasL = QVBoxLayout()
         c_widget = QWidget()
         c_widget.setLayout(self.canvasL)
-        
+        c_widget.setFixedHeight(499)
         self.canvas = FigureCanvas(self.fig)
         self.toolBar = NavigationToolbar(self.canvas, self)
-        
         self.canvasL.addWidget(self.canvas)
 
+        #Labels eje x de la grafica para indicar fecha minima y maxima
+        self.lLayout = QHBoxLayout()
+        self.labelsLayout = QHBoxLayout()
+        l_widget = QWidget()
+        l_widget.setLayout(self.labelsLayout)
+        l_widget.setFixedHeight(37)
+        self.labelsLayout.addItem(QtWidgets.QSpacerItem(175, 0))
+        self.labelFmin = QLabel()
+        self.labelsLayout.addWidget(self.labelFmin)
+        self.labelFmin.setAlignment(QtCore.Qt.AlignLeft)
+        #self.labelsLayout.addItem(QtWidgets.QSpacerItem(0, 0, QSizePolicy.Expanding))
+        self.labelFmax = QLabel()
+        self.labelsLayout.addWidget(self.labelFmax)
+        self.labelFmax.setAlignment(QtCore.Qt.AlignRight)
+        self.labelsLayout.addItem(QtWidgets.QSpacerItem(85, 0))
+        self.lLayout.addWidget(l_widget)
         
+        #Estructuracion de los layouts
         self.graficaLayout.addLayout(self.tablaL)
         #self.graficaLayout.addWidget(self.canvas)
         self.graficaLayout.addWidget(c_widget)
         self.graficaLayout.addWidget(s_widget)
-        self.horizontalLayout.addLayout(self.graficaLayout)
         self.toolbarLayout.addWidget(self.toolBar)
+        self.horizontalLayout.addLayout(self.graficaLayout)
+        self.horizontalLayout.addLayout(self.lLayout)
         self.horizontalLayout.addLayout(self.toolbarLayout)
         self.horizontalLayout.setContentsMargins(10, 10, 10, 10)
         
@@ -129,6 +147,7 @@ class mainWindow(QWidget):
         self.scroll.setWidget(self.canvas)
         self.canvas.mpl_connect("scroll_event", self.scrolling)'''
         
+        #Evento que detecta la modificación de la gráfica
         self.canvas.mpl_connect("draw_event", self.drawEvent)
         
         #Layout de la grafica 
@@ -145,6 +164,7 @@ class mainWindow(QWidget):
         self.timeLayout.addWidget(t_widget)
         self.timeLayout.addItem(QtWidgets.QSpacerItem(60, 0))
         
+        #MainLayout de la ventana
         '''self.mainLayout.addWidget(self.tableFWidget)'''
         #self.mainLayout.addLayout(self.timeLayout)
         self.mainLayout.addLayout(self.horizontalLayout)
@@ -235,6 +255,8 @@ class mainWindow(QWidget):
     #Accion del slider para navegar por la gráfica
     def sliderValue(self):
         value = self.scroll - self.scrollBar.value()
+        fmin= self.getXMin()
+        fmax= self.getXMax()
         if ((self.scroll-value)<5):
             self.ax.set_ylim([self.scroll-14.5, self.scroll+.5])
             self.canvas.draw_idle()
@@ -251,12 +273,10 @@ class mainWindow(QWidget):
         #print(self.tableWidget.rowAt(0))
         #self.tableWidget.scrollToItem(self.tableWidget.itemAt(0, 19), QAbstractItemView.EnsureVisible | QAbstractItemView.PositionAtTop )
         #Control para no borrar registro de acciones si se mueve el scroll con el zoom activado
-        fmin= self.getXMin()
-        fmax= self.getXMax()
         self.toolBar.push_current()
         #self.changeTableW()
-        '''if ((fmin==str(self.fMin)) & (fmax==str(self.fMax))):'''
-        self.toolBar.clearCursor()
+        if ((fmin==str(self.fMin)) & (fmax==str(self.fMax))):
+            self.toolBar.clearCursor()
     
     #Obtener valores minimo actual del eje x
     def getXMin(self):
@@ -341,9 +361,19 @@ class mainWindow(QWidget):
                 contador+=1
                 value+=1
     
+    #Tras detectar un evento de dibujo sobre la grafica, realiza la llamada para actualizar la tabla de fotometros
     def drawEvent(self, event):
-        self.changeTableW() 
-          
+        self.changeTableW()
+        self.setTimeLabels() 
+    
+    #Modifica las labels del ejex, las cuales hacen referencia a la fecha minima y maxima de la grafica      
+    def setTimeLabels(self):
+        fechaMin = self.getXMin()
+        fechaMax = self.getXMax()
+        self.labelFmin.setText("<--- " + fechaMin)
+        self.labelFmax.setText(fechaMax + " --->")
+        
+        
                              
     def scrolling(self, event):
         if (self.contador%2)==0:
@@ -375,6 +405,7 @@ class mainWindow(QWidget):
         f2 = str(num2date(fecha[1]))
         fMin = f1[0:19]
         fMax = f2[0:19]
+        self.main_controller.graphWindow(phStation, fMin, fMax)
         #main.graphWindow(self, phStation, fMin ,fMax)
            
     def on_press(self, event):

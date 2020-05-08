@@ -10,10 +10,15 @@ from PyQt5.QtWidgets import QApplication
 import src.modelo.globales as g
 import src.vista.mainWindow as v
 import src.modelo.consultasBBDD as c
+from src.controlador.graphController import graphController
 
 class mainWController:
     
     def __init__(self):
+        super().__init__()
+        
+    def start(self):
+        self.main_controller = self
         self.db = pymysql.connect(g.database_host, g.user, g.password, g.database_name)
         self.cursor = self.db.cursor()
         app = QApplication(sys.argv)
@@ -21,12 +26,11 @@ class mainWController:
         datosCompletos = self.getDatosCompletos()
         fechaMin = self.getFechaMin()
         fechaMax = self.getFechaMax()
-        self.screen = v.mainWindow()
+        self.screen = v.mainWindow(self.main_controller)
         self.screen.plotUsoPh(datosDistinct, datosCompletos, fechaMin, fechaMax)
         self.screen.setDatosTabla(datosDistinct)
         self.screen.show()
         sys.exit(app.exec_())
-        
     
     #Devuelve una lista de distict fotometros y estaciones   
     def getDatosPhStation(self):
@@ -45,4 +49,19 @@ class mainWController:
     #Devuelve la fecha maxima de uso de los fotometros
     def getFechaMax(self):    
         return c.consultaBBDD.maxFecha(self, self.cursor)
+    
+    #Invoca la ventana graphWindow, la cual muestra datos para un fotometro concreto
+    def graphWindow(self, ph, fechaMin, fechaMax):
+        fot = ph.split()
+        nFotometro = fot[0]
+        station = fot[1]
+        print(nFotometro)
+        print(station)
+        print(fechaMin)
+        print(fechaMax)
+        '''datos= consultaBBDD.getAODChannels(self, self.cursor, ph)
+        screen2 = vg.graphWindow(datos)
+        screen2.plotGrafica(datos)
+        screen2.show()'''
+        graphController(nFotometro, station, fechaMin, fechaMax)
     

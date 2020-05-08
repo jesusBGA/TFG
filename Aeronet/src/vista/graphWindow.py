@@ -10,7 +10,7 @@ from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 plt.style.use('classic')
 from PyQt5 import QtCore
-import datetime
+from datetime import datetime, timedelta
 from matplotlib.dates import date2num, num2date
 from matplotlib.dates import DateFormatter
 import pandas as pd
@@ -19,9 +19,12 @@ from pandas.plotting import register_matplotlib_converters
 #Ventana para graficar los datos de cada fotometro individualmente
 class graphWindow(QWidget):
 
-    def __init__(self):
+    def __init__(self, fechaMin, fechaMax):
         
         QWidget.__init__(self)
+        
+        self.fMin = datetime.strptime(fechaMin, '%Y-%m-%d %H:%M:%S')
+        self.fMax = datetime.strptime(fechaMax, '%Y-%m-%d %H:%M:%S')
         
         #Tamaño de la ventana
         self.setFixedSize(1300,780)
@@ -38,8 +41,8 @@ class graphWindow(QWidget):
         self.fig, self.ax = plt.subplots()
         register_matplotlib_converters()
         self.ax.xaxis.set_major_formatter(DateFormatter('%d-%m-%Y %H:%M:%S'))
-        self.ax.set_xlim([datetime.datetime(2019, 4, 24, 0, 0, 0),datetime.datetime(2019, 5, 1, 0, 0, 0)])
-        self.ax.set_ylim([-1, 4])
+        self.ax.set_xlim([self.fMin, self.fMax])
+        self.ax.set_ylim([-1, 6])
         self.fig.autofmt_xdate()
         self.graficaLayout = QVBoxLayout()
         self.canvas = FigureCanvas(self.fig)

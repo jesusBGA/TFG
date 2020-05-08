@@ -21,18 +21,16 @@ import src.modelo.consultasBBDD as o
 
 class graphController:
     
-    def __init__(self): 
+    def __init__(self, ph, station, fechaMin, fechaMax): 
         self.db = pymysql.connect(g.database_host, g.user, g.password, g.database_name)
         self.cursor = self.db.cursor()
-        app = QApplication(sys.argv)
-        datos=self.getDatosAOD(10)
-        self.screen = vg.graphWindow()
+        datos=self.getDatosAOD(ph, station, fechaMin, fechaMax)
+        self.screen = vg.graphWindow(fechaMin, fechaMax)
         self.screen.plotGrafica(datos)
         #screen2.plotCSVGrafica()
         self.screen.show()
-        sys.exit(app.exec_())
         
     #Devuelve una lista de fotometro, fecha, channel, aod
-    def getDatosAOD(self, ph):
-        datos=c.consultaBBDD.getAODChannels(self, self.cursor, ph)
+    def getDatosAOD(self, ph, station, fechaMin, fechaMax):
+        datos=c.consultaBBDD.getAODChannelsV2(self, self.cursor, ph, station, fechaMin, fechaMax)
         return datos

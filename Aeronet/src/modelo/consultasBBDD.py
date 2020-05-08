@@ -70,8 +70,16 @@ class consultaBBDD():
             return cursor.fetchall()
         except:
             print(sys.exc_info())
+    
            
-
+    #Metodo para obtener los datos AOD para un fotometro y unas fechas dadas
+    def getAODChannelsV2(self, cursor, ph, station, fechaMin, fechaMax):
+        try:
+            cursor.execute("select C.channel, C.date, avg(C.aod) as aod, min(C.aod) as min, max(C.aod) as max FROM caelis.cml_aod_channel C JOIN caelis.cml_aod A ON (A.ph=C.ph && A.station= %s && A.date=C.date) WHERE (C.ph= %s && C.aod is not null && C.date between %s and %s) GROUP BY C.channel, C.date;", 
+                           (station, ph, fechaMin, fechaMax))
+            return cursor.fetchall()
+        except:
+            print(sys.exc_info())
             
 #Método para tranformar la lista de fotometros consultada para su tratamiento
 def toPhStationObject(data):
