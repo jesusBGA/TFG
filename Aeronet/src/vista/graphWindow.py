@@ -19,9 +19,10 @@ from pandas.plotting import register_matplotlib_converters
 #Ventana para graficar los datos de cada fotometro individualmente
 class graphWindow(QWidget):
 
-    def __init__(self, fechaMin, fechaMax):
+    def __init__(self, fechaMin, fechaMax, graph_controller):
         
         QWidget.__init__(self)
+        self.graphController = graph_controller
         
         self.fMin = datetime.strptime(fechaMin, '%Y-%m-%d %H:%M:%S')
         self.fMax = datetime.strptime(fechaMax, '%Y-%m-%d %H:%M:%S')
@@ -42,7 +43,7 @@ class graphWindow(QWidget):
         register_matplotlib_converters()
         self.ax.xaxis.set_major_formatter(DateFormatter('%d-%m-%Y %H:%M:%S'))
         self.ax.set_xlim([self.fMin, self.fMax])
-        self.ax.set_ylim([-1, 6])
+        self.ax.set_ylim([-1, 8])
         self.fig.autofmt_xdate()
         self.graficaLayout = QVBoxLayout()
         self.canvas = FigureCanvas(self.fig)
@@ -62,19 +63,20 @@ class graphWindow(QWidget):
         self.AOD = QPushButton("AOD")
         self.dataTypeVL.addWidget(self.AOD)
         self.Wexp = QPushButton("Wexp")
-        self.Wexp.clicked.connect(self.Wext_clicked)
+        self.Wexp.clicked.connect(self.Wexp_clicked)
         self.dataTypeVL.addWidget(self.Wexp)
         self.Water_Vapor = QPushButton("Water Vapor")
         self.Water_Vapor.clicked.connect(self.WaterVapor_clicked)
         self.dataTypeVL.addWidget(self.Water_Vapor)
-        self.SDA = QPushButton("SDA")
-        self.dataTypeVL.addWidget(self.SDA)
+        self.PWR = QPushButton("PWR")
+        self.dataTypeVL.addWidget(self.PWR)
         self.Temp = QPushButton("Temp")
+        self.Temp.clicked.connect(self.temperaturaClicked)
         self.dataTypeVL.addWidget(self.Temp)
-        self.Int_V = QPushButton("Int V")
+        '''self.Int_V = QPushButton("Int V")
         self.dataTypeVL.addWidget(self.Int_V)
         self.BLK = QPushButton("BLK")
-        self.dataTypeVL.addWidget(self.BLK)
+        self.dataTypeVL.addWidget(self.BLK)'''
         self.dataTypeGB.setLayout(self.dataTypeVL)
         self.botonesLayout.addWidget(self.dataTypeGB)
         
@@ -142,8 +144,13 @@ class graphWindow(QWidget):
         }
         
         for row in datos:
+            lowerError = row[2]-row[3]
+            upperError = row[4]-row[2]
+            '''lowerError = row[3]
+            upperError = row[4]'''
             if row[0]==1:
-                self.ax.plot(row[1], row[2],"ro")
+                self.ax.bar(row[1], 0.025, bottom = row[2]-0.0125, width=0.05, color='white', edgecolor = 'red', align='center')
+                self.ax.errorbar(row[1], row[2], yerr = [[lowerError],[upperError]], marker= "o", color= "r")
             elif row[0]==2:
                 self.ax.plot(row[1], row[2],"bx")
             elif row[0]==3:
@@ -161,37 +168,77 @@ class graphWindow(QWidget):
             #self.ax.plot(row[1], row[2], switcher.get(row[0], "k"))
         self.ax.legend()
         #self.canvas.draw()
-        
-    #Plotea los datos del fotometro desde el csv
-    def plotCSVGrafica(self):
-        data= pd.read_csv('../modelo/aod.csv', index_col=0)
-        data.plot()
-        '''c1=data.loc["1"]
-        c2=data.loc["2"]
-        years=data.columns
-        self.ax.plot(years, c1, "ro", label="Channel1")
-        self.ax.plot(years, c2, "bx", label="Channel2")'''
-    
-    
+      
     #Reiniciar y dar formato a los ejes de la gráfica    
     def limpiaPlot(self):
         self.ax.clear()
         self.ax.xaxis.set_major_formatter(DateFormatter('%d-%m-%Y %H:%M:%S'))
-        self.ax.set_xlim([datetime.datetime(2019, 4, 24, 0, 0, 0),datetime.datetime(2019, 5, 1, 0, 0, 0)])
-        self.ax.set_ylim([-1, 4])
+        self.ax.set_xlim([self.fMin, self.fMax])
+        self.ax.set_ylim([-1, 8])
         self.fig.autofmt_xdate()
         self.canvas.draw_idle()
         
     #Acción boton Wext    
-    def Wext_clicked(self):
-        self.limpiaPlot()
+    def Wexp_clicked(self):
+        self.graphController.graficaWExp()
         
-    #Acción boton Wext    
+    #Acción boton vapor de agua    
     def WaterVapor_clicked(self):
+        self.graphController.graficaWVapor()
+    
+    #Acción boton temperatura    
+    def temperaturaClicked(self): 
+        self.graphController.graficaTemperatura()
+        
+    #Plotea datos sin canales (temperatura y vapor de agua)
+    def plotSimpleData(self, dataX, dataY, tipo):
+        self.limpiaPlot()
+        self.toolBar._nav_stack.clear()
+        format = "black"
+        yMax = dataY.values.max()
+        yMin = dataY.values.min()
+        if (tipo =="Temperatura"):
+            format = "ro-"
+        elif (tipo == "Vapor de agua"):
+            format = "bo-"
+        self.ax.set_ylim([yMin-1, yMax+1])
+        self.ax.plot(dataX, dataY, format, label = tipo)
+        self.ax.legend()
+        self.canvas.draw_idle()
+    
+    #Plotea los datos referentes a WExp, formado por alpha 440-870 y alpha 380-500
+    def plotWExp(self, dataX, dataY440, dataY380):
+        self.limpiaPlot()
+        self.toolBar._nav_stack.clear()
+        #Seleccionar maximo y minimo entre los 2 canales
+        yMax440 = dataY440.values.max()
+        yMin440 = dataY440.values.min()
+        yMax380 = dataY380.values.max()
+        yMin380 = dataY380.values.min()
+        if (yMax440>=yMax380):
+            yMax=yMax440
+        else:
+            yMax=yMax380
+        if (yMin440<=yMin380):
+            yMin=yMin440
+        else:
+            yMin=yMin380
+        self.ax.plot(dataX, dataY440, "ro-", label = "alpha 440-870")
+        self.ax.plot(dataX, dataY380, "bo-", label = "alpha 380-500")
+        self.ax.set_ylim([yMin-1, yMax+1])
+        self.ax.legend()
+        self.canvas.draw_idle()
+    
+    
+    #Graficar datos con errorbar y por canales EN PRUEBAS
+    def plotDatosError(self, x, y, yErrorLower, yErrorUpper, format1, format2, canal):
+        self.ax.plot(x, y, format1, label= "Canal "+str(canal))
+        self.ax.errorbar(x, y, yerr=[[yErrorLower], [yErrorUpper]], fmt=format2)
+        
+    #Fechas   
+    def WaterVaporclicked(self):
         fecha = self.ax.get_xlim()
         f1= str(num2date(fecha[0]))
         f2= str(num2date(fecha[1]))
         print(f1[0:19])
-        print(f2[0:19])
-        
-        
+        print(f2[0:19])   

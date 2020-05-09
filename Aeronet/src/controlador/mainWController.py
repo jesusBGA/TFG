@@ -11,6 +11,7 @@ import src.modelo.globales as g
 import src.vista.mainWindow as v
 import src.modelo.consultasBBDD as c
 from src.controlador.graphController import graphController
+import src.modelo.phStationObject as objecto
 
 class mainWController:
     
@@ -40,7 +41,8 @@ class mainWController:
     #Devuelve una lista de objetos con el n de fotometro, la estación, el conjunto de fechas que estáactivo y con los eprom type y subtype
     def getDatosCompletos(self):
         datos=c.consultaBBDD.getPhStationDates(self, self.cursor)
-        return datos
+        datosCompletos = self.toPhStationObject(datos)
+        return datosCompletos
     
     #Devuelve la fecha minima de uso de los fotometros
     def getFechaMin(self):
@@ -55,13 +57,34 @@ class mainWController:
         fot = ph.split()
         nFotometro = fot[0]
         station = fot[1]
-        print(nFotometro)
-        print(station)
-        print(fechaMin)
-        print(fechaMax)
         '''datos= consultaBBDD.getAODChannels(self, self.cursor, ph)
         screen2 = vg.graphWindow(datos)
         screen2.plotGrafica(datos)
         screen2.show()'''
-        graphController(nFotometro, station, fechaMin, fechaMax)
+        self.graphController = graphController()
+        self.graphController.start(nFotometro, station, fechaMin, fechaMax)
     
+    #Método para tranformar la lista de fotometros consultada para su tratamiento
+    def toPhStationObject(self, data):
+        indices =[]
+        datosCompletos=[]
+        contador=0
+        for row in data:
+            fechas = []
+            aux = str(row[0])+" "+ str(row[1])
+            if aux not in indices:
+                indices.append(aux)
+                o = objecto.phStationObject(aux, row[4], row[5])
+                fechas.append(row[2])
+                fechas.append(row[3])
+                o.setDateOfUse(fechas)
+                datosCompletos.append(o)
+                contador+=1
+            else:
+                o=datosCompletos[contador-1]
+                datosCompletos.remove(o)
+                fechas.append(row[2])
+                fechas.append(row[3])
+                o.setDateOfUse(fechas)
+                datosCompletos.append(o)
+        return datosCompletos 

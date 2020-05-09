@@ -55,15 +55,12 @@ class consultaBBDD():
         try:
             cursor.execute(g.sql2)
             data = cursor.fetchall()
-            datosCompletos = toPhStationObject(data)
-                    
+            return data        
         except ValueError:
             print(g.err1)
-               
-        return datosCompletos
+                
     
-    
-    #Metodo para obtener los datos AOD para un fotometro y unas fechas dadas
+    #Metodo para obtener los datos AOD para un fotometro y unas fechas dadas NO UTILIZADO
     def getAODChannels(self, cursor, ph):
         try:
             cursor.execute("select C.channel, C.date, avg(C.aod) as aod FROM caelis.cml_aod_channel C JOIN caelis.cml_aod A ON (A.ph=C.ph && A.date=C.date) WHERE (C.ph=10 && C.aod is not null && C.date between '2019-04-25 00:00:01' and '2019-05-01 00:00:01') GROUP BY C.channel, C.date;")
@@ -72,36 +69,44 @@ class consultaBBDD():
             print(sys.exc_info())
     
            
-    #Metodo para obtener los datos AOD para un fotometro y unas fechas dadas
-    def getAODChannelsV2(self, cursor, ph, station, fechaMin, fechaMax):
+    #Metodo para obtener los datos AOD para un fotometro y unas fechas dadas, con cloud Level 1.0
+    def getAODChannelsL1(self, cursor, ph, station, fechaMin, fechaMax):
         try:
-            cursor.execute("select C.channel, C.date, avg(C.aod) as aod, min(C.aod) as min, max(C.aod) as max FROM caelis.cml_aod_channel C JOIN caelis.cml_aod A ON (A.ph=C.ph && A.station= %s && A.date=C.date) WHERE (C.ph= %s && C.aod is not null && C.date between %s and %s) GROUP BY C.channel, C.date;", 
-                           (station, ph, fechaMin, fechaMax))
+            cursor.execute(g.sql51, (station, ph, fechaMin, fechaMax))
             return cursor.fetchall()
         except:
             print(sys.exc_info())
             
-#Método para tranformar la lista de fotometros consultada para su tratamiento
-def toPhStationObject(data):
-    indices =[]
-    datosCompletos=[]
-    contador=0
-    for row in data:
-        fechas = []
-        aux = str(row[0])+" "+ str(row[1])
-        if aux not in indices:
-            indices.append(aux)
-            o = objecto.phStationObject(aux, row[4], row[5])
-            fechas.append(row[2])
-            fechas.append(row[3])
-            o.setDateOfUse(fechas)
-            datosCompletos.append(o)
-            contador+=1
-        else:
-            o=datosCompletos[contador-1]
-            datosCompletos.remove(o)
-            fechas.append(row[2])
-            fechas.append(row[3])
-            o.setDateOfUse(fechas)
-            datosCompletos.append(o)
-    return datosCompletos        
+    #Metodo para obtener los datos AOD para un fotometro y unas fechas, dadas con cloud Level 1.5
+    def getAODChannelsL15(self, cursor, ph, station, fechaMin, fechaMax):
+        try:
+            cursor.execute(g.sql6, (station, ph, fechaMin, fechaMax))
+            return cursor.fetchall()
+        except:
+            print(sys.exc_info())
+            
+    #Metodo para obtener las medidas de temperatura para un fotometro y un rango de fechas
+    def getTemperatura(self, cursor, ph, station, fechaMin, fechaMax):
+        try:
+            cursor.execute(g.sql7, (station, ph, fechaMin, fechaMax))
+            return cursor.fetchall()
+        except:
+            print(sys.exc_info())
+    
+    #Metodo para obtener las medidas de vapor de agua para un fotometro y un rango de fechas
+    def getWVapor(self, cursor, ph, station, fechaMin, fechaMax):
+        try:
+            cursor.execute(g.sql8, (ph, station, fechaMin, fechaMax))
+            return cursor.fetchall()
+        except:
+            print(sys.exc_info())
+            
+    #Metodo para obtener las medidas de WExp para un fotometro y un rango de fechas
+    def getWExp(self, cursor, ph, station, fechaMin, fechaMax):
+        try:
+            cursor.execute(g.sql9, (ph, station, fechaMin, fechaMax))
+            return cursor.fetchall()
+        except:
+            print(sys.exc_info())
+            
+    
