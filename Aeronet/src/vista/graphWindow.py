@@ -19,13 +19,18 @@ from pandas.plotting import register_matplotlib_converters
 #Ventana para graficar los datos de cada fotometro individualmente
 class graphWindow(QWidget):
 
-    def __init__(self, fechaMin, fechaMax, graph_controller):
+    def __init__(self, ph, station, fechaMin, fechaMax, graph_controller):
         
         QWidget.__init__(self)
         self.graphController = graph_controller
         
         self.fMin = datetime.strptime(fechaMin, '%Y-%m-%d %H:%M:%S')
         self.fMax = datetime.strptime(fechaMax, '%Y-%m-%d %H:%M:%S')
+        #Variable botón check
+        self.check="AOD"
+        
+        #Título de la ventana
+        self.setWindowTitle(str(ph)+" "+str(station))
         
         #Tamaño de la ventana
         self.setFixedSize(1300,780)
@@ -40,6 +45,7 @@ class graphWindow(QWidget):
         
         #Grafica y navigation toolbar
         self.fig, self.ax = plt.subplots()
+        self.fig.suptitle('AOD', fontsize=20)
         register_matplotlib_converters()
         self.ax.xaxis.set_major_formatter(DateFormatter('%d-%m-%Y %H:%M:%S'))
         self.ax.set_xlim([self.fMin, self.fMax])
@@ -59,20 +65,28 @@ class graphWindow(QWidget):
         #Data type botones
         self.dataTypeGB = QGroupBox("Data Type")
         self.dataTypeVL = QVBoxLayout()
+        self.groupButtons = QButtonGroup()
         self.dataTypeVL.setObjectName("Data Type")
         self.AOD = QPushButton("AOD")
+        self.AOD.setChecked(True)
+        self.AOD.clicked.connect(self.AOD_clicked)
         self.dataTypeVL.addWidget(self.AOD)
+        self.groupButtons.addButton(self.AOD)
         self.Wexp = QPushButton("Wexp")
         self.Wexp.clicked.connect(self.Wexp_clicked)
         self.dataTypeVL.addWidget(self.Wexp)
+        self.groupButtons.addButton(self.Wexp)
         self.Water_Vapor = QPushButton("Water Vapor")
         self.Water_Vapor.clicked.connect(self.WaterVapor_clicked)
         self.dataTypeVL.addWidget(self.Water_Vapor)
-        self.PWR = QPushButton("PWR")
-        self.dataTypeVL.addWidget(self.PWR)
+        self.groupButtons.addButton(self.Water_Vapor)
         self.Temp = QPushButton("Temp")
         self.Temp.clicked.connect(self.temperaturaClicked)
         self.dataTypeVL.addWidget(self.Temp)
+        self.groupButtons.addButton(self.Temp)
+        self.PWR = QPushButton("PWR")
+        self.dataTypeVL.addWidget(self.PWR)
+        self.groupButtons.addButton(self.PWR)
         '''self.Int_V = QPushButton("Int V")
         self.dataTypeVL.addWidget(self.Int_V)
         self.BLK = QPushButton("BLK")
@@ -177,18 +191,34 @@ class graphWindow(QWidget):
         self.ax.set_ylim([-1, 8])
         self.fig.autofmt_xdate()
         self.canvas.draw_idle()
+    
+    #Fechas   
+    def AOD_clicked(self):
+        if (self.check!="AOD"):
+            self.fig.suptitle('AOD', fontsize=20) 
+            self.graphController.graficaAOD()
+            self.check="AOD"
         
     #Acción boton Wext    
     def Wexp_clicked(self):
-        self.graphController.graficaWExp()
+        if (self.check!="WExp"):
+            self.fig.suptitle('WExp', fontsize=20) 
+            self.graphController.graficaWExp()
+            self.check="WExp"
         
     #Acción boton vapor de agua    
     def WaterVapor_clicked(self):
-        self.graphController.graficaWVapor()
+        if (self.check!="WaterVapor"):
+            self.fig.suptitle('Water Vapor', fontsize=20) 
+            self.graphController.graficaWVapor()
+            self.check="WaterVapor"
     
     #Acción boton temperatura    
-    def temperaturaClicked(self): 
-        self.graphController.graficaTemperatura()
+    def temperaturaClicked(self):
+        if (self.check!="Temperatura"):
+            self.fig.suptitle('Temperatura', fontsize=20) 
+            self.graphController.graficaTemperatura()
+            self.check="Temperatura"
         
     #Plotea datos sin canales (temperatura y vapor de agua)
     def plotSimpleData(self, dataX, dataY, tipo):
@@ -224,11 +254,16 @@ class graphWindow(QWidget):
         else:
             yMin=yMin380
         self.ax.plot(dataX, dataY440, "ro-", label = "alpha 440-870")
-        self.ax.plot(dataX, dataY380, "bo-", label = "alpha 380-500")
+        self.ax.plot(dataX, dataY380, "bD-", label = "alpha 380-500")
         self.ax.set_ylim([yMin-1, yMax+1])
         self.ax.legend()
         self.canvas.draw_idle()
     
+    #Plotea los datos con canales (AOD y PWR)
+    def plotChannelData(self, dataX, dataY, yMin, yMax, lowerE, upperE, desvS, nChannel, color, marker):
+        self.ax.errorbar(dataX, dataY, yerr=[lowerE, upperE], color = color, marker = marker, label = "Canal: "+str(nChannel))
+        self.ax.set_ylim([yMin-1, yMax+3])
+        self.ax.legend()
     
     #Graficar datos con errorbar y por canales EN PRUEBAS
     def plotDatosError(self, x, y, yErrorLower, yErrorUpper, format1, format2, canal):

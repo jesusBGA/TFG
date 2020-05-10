@@ -25,3 +25,7 @@ sql51 = "select C.channel, C.date, avg(C.aod) as aod, min(C.aod) as min, max(C.a
 
 #Errores posibles
 err1 = "No se estableció conexión con la base de datos"
+
+#Estilo de los canales para su ploteo
+fCanalColors = ("", "red", "blue", "cyan", "magenta", "green", "yellow", "orange", "purple", "brown", "black", "turquoise")
+fCanalMarkers = ("", "o", "x", "v", "<", ">", "s", "p", "*", "D", "h", "+")

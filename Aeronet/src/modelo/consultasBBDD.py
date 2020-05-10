@@ -5,7 +5,6 @@ Created on 29 ene. 2020
 '''
 
 import src.modelo.globales as g
-import src.modelo.phStationObject as objecto
 import sys
 from datetime import datetime, timedelta
 

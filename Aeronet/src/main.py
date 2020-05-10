@@ -20,7 +20,6 @@ from src.controlador.mainWController import mainWController
 from src.controlador.graphController import graphController
 import src.vista.graphWindow as vg
 
-
     
 class main:   
     def __init__(self): 
@@ -31,18 +30,6 @@ class main:
         #graphController()'''
         self.main_controller = mainWController()
         self.main_controller.start()
-    
-
-    #Invoca la ventana graphWindow, la cual muestra datos para un fotometro concreto
-    '''def graphWindow(self, ph, fechaMin, fechaMax):
-        print(ph[0])
-        print(fechaMin)
-        print(fechaMax)
-        datos= consultaBBDD.getAODChannels(self, self.cursor, ph)
-        screen2 = vg.graphWindow(datos)
-        screen2.plotGrafica(datos)
-        screen2.show()
-        graphController()'''
 
 if __name__ == '__main__':    
     main()
