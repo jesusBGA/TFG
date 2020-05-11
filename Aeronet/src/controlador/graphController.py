@@ -31,73 +31,110 @@ class graphController:
         self.controller = self 
         self.db = pymysql.connect(g.database_host, g.user, g.password, g.database_name)
         self.cursor = self.db.cursor()
-        self.datosAOD=self.getDatosAOD(ph, station, fechaMin, fechaMax)
+        self.ph = ph
+        self.station = station
+        self.fechaMin = fechaMin
+        self.fechaMax = fechaMax
+        self.getDatosAOD(ph, station, fechaMin, fechaMax)
         if (any(map(len, self.datosAOD))):
             self.screen = vg.graphWindow(ph, station, fechaMin, fechaMax, self.controller)
             self.screen.plotGrafica(self.datosAOD)
             self.screen.show()
         else:
-            MessageBox.showinfo("Empty!", "No hay datos para el fotómetro: "+str(ph)+ " "+str(station)+" entre las fechas "+str(fechaMin)+" y "+str(fechaMax))
-                
-        #Obtener los datos relativos a la temperatura
-        temperatura = self.getDatosTemp(ph, station, fechaMin, fechaMax)
-        if (any(map(len, temperatura))):
-            t = pd.DataFrame(temperatura)
-            self.tDateX = t.iloc[:, 0]
-            self.tTempY = t.iloc[:, 1]
-            
-        #Obtener los datos relativos al vapor de agua
-        wVapor = self.getDatosWVapor(ph, station, fechaMin, fechaMax)
-        if (any(map(len, wVapor))):
-            wV = pd.DataFrame(wVapor)
-            self.wVDateX = wV.iloc[:, 0]
-            self.wVaporY = wV.iloc[:, 1]
-            
-        #Obtener los dato relativos a WExp
-        wExp = self.getDatosWExp(ph, station, fechaMin, fechaMax)
-        if (any(map(len, wVapor))):
-            wE = pd.DataFrame(wExp)
-            self.wEDateX = wE.iloc[:, 0]
-            self.wExpAlpha440Y = wE.iloc[:, 1]    
-            self.wExpAlpha380Y = wE.iloc[:, 2]
-        
-    #Devuelve una lista de fotometro, fecha, channel, aod
-    def getDatosAOD(self, ph, station, fechaMin, fechaMax):
-        datos = c.consultaBBDD.getAODChannelsL1(self, self.cursor, ph, station, fechaMin, fechaMax)
-        return datos
+            MessageBox.showwarning("Empty!", "No hay datos para el fotómetro: "+str(ph)+ " "+str(station)+" entre las fechas "+str(fechaMin)+" y "+str(fechaMax))
     
-    #Devuelve una lista con las medidas de temperaturas para un fotómetro een un rango de fechas
-    def getDatosTemp(self, ph, station, fechaMin, fechaMax):
-        datos = c.consultaBBDD.getTemperatura(self, self.cursor, ph, station, fechaMin, fechaMax)
-        return datos
+    #Devuelve una lista con las medidas AOD para un fotometro, un rango de fechas y cloud level 1.0
+    def getDatosAOD(self, ph, station, fechaMin, fechaMax):
+        self.datosAOD = c.consultaBBDD.getAODChannelsL1(self, self.cursor, ph, station, fechaMin, fechaMax)
         
-    #Devuelve una lista con las medidad WExp para un fotómetro een un rango de fechas
-    def getDatosWExp(self, ph, station, fechaMin, fechaMax):
-        datos = c.consultaBBDD.getWExp(self, self.cursor, ph, station, fechaMin, fechaMax)
-        return datos
+    #Devuelve una lista con las medidas AOD para un fotometro, un rango de fechas y cloud level 1.0
+    def getDatosAODL1(self, ph, station, fechaMin, fechaMax):
+        self.datosAOD = c.consultaBBDD.getAODChannelsL1(self, self.cursor, ph, station, fechaMin, fechaMax)
+    
+    #Devuelve una lista con las medidas AOD para un fotometro, un rango de fechas y cloud level 1.5
+    def getDatosAODL15(self, ph, station, fechaMin, fechaMax):
+        self.datosAOD = c.consultaBBDD.getAODChannelsL15(self, self.cursor, ph, station, fechaMin, fechaMax)
         
-    #Devuelve una lista con las medidad de vapor de agua temperaturas para un fotómetro een un rango de fechas
-    def getDatosWVapor(self, ph, station, fechaMin, fechaMax):
-        datos = c.consultaBBDD.getWVapor(self, self.cursor, ph, station, fechaMin, fechaMax)
-        return datos
+    #Devuelve una lista con las medidas de temperaturas para un fotómetro en un rango de fechas y cloud level 1.0
+    def getDatosTempL1(self, ph, station, fechaMin, fechaMax):
+        temperatura = c.consultaBBDD.getTemperaturaL1(self, self.cursor, ph, station, fechaMin, fechaMax)
+        if (type(temperatura)!='Nonetype'):
+            if (any(map(len, temperatura))):
+                t = pd.DataFrame(temperatura)
+                self.tDateX = t.iloc[:, 0]
+                self.tTempY = t.iloc[:, 1]
+        
+    #Devuelve una lista con las medidas de temperaturas para un fotómetro en un rango de fechas y cloud level 1.5
+    def getDatosTempL15(self, ph, station, fechaMin, fechaMax):
+        temperatura = c.consultaBBDD.getTemperaturaL15(self, self.cursor, ph, station, fechaMin, fechaMax)
+        if (type(temperatura)!='Nonetype'):
+            if (any(map(len, temperatura))):
+                t = pd.DataFrame(temperatura)
+                self.tDateX = t.iloc[:, 0]
+                self.tTempY = t.iloc[:, 1]
+        
+    #Devuelve una lista con las medidad WExp para un fotómetro een un rango de fechas y cloud level 1.0
+    def getDatosWExpL1(self, ph, station, fechaMin, fechaMax):
+        wExp = c.consultaBBDD.getWExpL1(self, self.cursor, ph, station, fechaMin, fechaMax)
+        if (type(wExp)!='Nonetype'):
+            if (any(map(len, wExp))):
+                wE = pd.DataFrame(wExp)
+                self.wEDateX = wE.iloc[:, 0]
+                self.wExpAlpha440Y = wE.iloc[:, 1]    
+                self.wExpAlpha380Y = wE.iloc[:, 2]
+    
+    #Devuelve una lista con las medidad WExp para un fotómetro een un rango de fechas y cloud level 1.5
+    def getDatosWExpL15(self, ph, station, fechaMin, fechaMax):
+        wExp = c.consultaBBDD.getWExpL15(self, self.cursor, ph, station, fechaMin, fechaMax)
+        if (type(wExp)!='Nonetype'):
+            if (any(map(len, wExp))):
+                wE = pd.DataFrame(wExp)
+                self.wEDateX = wE.iloc[:, 0]
+                self.wExpAlpha440Y = wE.iloc[:, 1]    
+                self.wExpAlpha380Y = wE.iloc[:, 2]
+        
+    #Devuelve una lista con las medidad de vapor de agua temperaturas para un fotómetro en un rango de fechas y cloud level 1.0
+    def getDatosWVaporL1(self, ph, station, fechaMin, fechaMax):
+        wVapor = c.consultaBBDD.getWVaporL1(self, self.cursor, ph, station, fechaMin, fechaMax)
+        if (type(wVapor)!='Nonetype'):
+            if (any(map(len, wVapor))):
+                wV = pd.DataFrame(wVapor)
+                self.wVDateX = wV.iloc[:, 0]
+                self.wVaporY = wV.iloc[:, 1]
+    
+    #Devuelve una lista con las medidad de vapor de agua temperaturas para un fotómetro en un rango de fechas y cloud level 1.5
+    def getDatosWVaporL15(self, ph, station, fechaMin, fechaMax):
+        wVapor = c.consultaBBDD.getWVaporL15(self, self.cursor, ph, station, fechaMin, fechaMax)
+        if (type(wVapor)!='Nonetype'):
+            if (any(map(len, wVapor))):
+                wV = pd.DataFrame(wVapor)
+                self.wVDateX = wV.iloc[:, 0]
+                self.wVaporY = wV.iloc[:, 1]
     
     #Descompone las tuplas de datos con canales para su representación en graphWindow
     def tratamientoDatosCanales(self, datos):
         print("")
         
     #Recupera los datos de llas medidas AOD y los manda a la vista para su representación    
-    def graficaAOD(self):
+    def graficaAOD(self, checkNubes):
         key_func = lambda x: x[0]
         colors = g.fCanalColors
         markers = g.fCanalMarkers
         self.screen.limpiaPlot()
         auxiliar = 0
-        
+        if (checkNubes=="1.0"):
+            self.getDatosAODL1(self.ph, self.station, self.fechaMin, self.fechaMax)
+        elif (checkNubes=="1.5"):
+            self.getDatosAODL15(self.ph, self.station, self.fechaMin, self.fechaMax)
+            
         for key, group in itertools.groupby(self.datosAOD, key_func):
             AOD = list(group)
             aod = pd.DataFrame(AOD)
             aodDateX = aod.iloc[:, 1]
             aodTempY = aod.iloc[:, 2]
+            aodBanda = aod.iloc[:, 5]
+            banda = aodBanda[0]*1000
+            banda = round(banda, 2)
             #Comprobaciones para ver el mayor y menor de los valores y estimar el maximo y el minimo en el eje Y de la grafica
             yMax = aodTempY.values.max()
             yMin = aodTempY.values.min()
@@ -115,17 +152,46 @@ class graphController:
             color = colors[key]
             marker = markers [key]
             desvS = []
-            self.screen.plotChannelData(aodDateX, aodTempY, yMinimo, yMaximo, lowerError, upperError, desvS, key, color, marker)
+            self.screen.plotChannelData(aodDateX, aodTempY, yMinimo, yMaximo, lowerError, upperError, desvS, banda, color, marker)
     
-    #Recupera los datos de la temperatura y los manda a la vista para su representación    
-    def graficaTemperatura(self):
+    #Recupera los datos de la temperatura y los manda a la vista para su representación, cloud level 1.0    
+    def graficaTemperaturaL1(self):
+        self.getDatosTempL1(self.ph, self.station, self.fechaMin, self.fechaMax)
         self.screen.plotSimpleData(self.tDateX, self.tTempY, "Temperatura")
         
-    #Recupera los datos del vapor de aua y los manda a la vista para su representación    
-    def graficaWVapor(self):
+    #Recupera los datos de la temperatura y los manda a la vista para su representación, cloud level 1.0    
+    def graficaTemperaturaL15(self):
+        self.getDatosTempL15(self.ph, self.station, self.fechaMin, self.fechaMax)
+        self.screen.plotSimpleData(self.tDateX, self.tTempY, "Temperatura")
+        
+    #Recupera los datos del vapor de aua y los manda a la vista para su representación, cloud level 1.0    
+    def graficaWVaporL1(self):
+        self.getDatosWVaporL1(self.ph, self.station, self.fechaMin, self.fechaMax)
         self.screen.plotSimpleData(self.wVDateX, self.wVaporY, "Vapor de agua")
         
-    #Recupera los datos de WExp y los manda a la vista para su representación    
-    def graficaWExp(self):
+    #Recupera los datos del vapor de aua y los manda a la vista para su representación, cloud level 1.5    
+    def graficaWVaporL15(self):
+        self.getDatosWVaporL15(self.ph, self.station, self.fechaMin, self.fechaMax)
+        self.screen.plotSimpleData(self.wVDateX, self.wVaporY, "Vapor de agua")
+        
+    #Recupera los datos de WExp y los manda a la vista para su representación, cloud level 1.0     
+    def graficaWExpL1(self):
+        self.getDatosWExpL1(self.ph, self.station, self.fechaMin, self.fechaMax)
+        self.screen.plotWExp(self.wEDateX, self.wExpAlpha440Y, self.wExpAlpha380Y)
+        
+    #Recupera los datos de WExp y los manda a la vista para su representación, cloud level 1.5     
+    def graficaWExpL15(self):
+        self.getDatosWExpL15(self.ph, self.station, self.fechaMin, self.fechaMax)
+        self.screen.plotWExp(self.wEDateX, self.wExpAlpha440Y, self.wExpAlpha380Y)
+    
+    
+        
+    #Recupera los datos de PWR y los manda a la vista para su representación, cloud level 1.0     
+    def graficaPWRL1(self):
+        self.getDatosWExpL15(self.ph, self.station, self.fechaMin, self.fechaMax)
+        self.screen.plotWExp(self.wEDateX, self.wExpAlpha440Y, self.wExpAlpha380Y)
+        
+    #Recupera los datos de PWR y los manda a la vista para su representación, cloud level 1.5     
+    def graficaPWRL15(self):
         self.screen.plotWExp(self.wEDateX, self.wExpAlpha440Y, self.wExpAlpha380Y)
         

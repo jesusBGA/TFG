@@ -148,7 +148,7 @@ class mainWindow(QWidget):
         self.canvas.mpl_connect("scroll_event", self.scrolling)'''
         
         #Evento que detecta la modificación de la gráfica
-        self.canvas.mpl_connect("draw_event", self.drawEvent)
+        self.canvas.mpl_connect("draw_event", self.fechaEvent)
         
         #Layout de la grafica 
         self.mainLayout = QVBoxLayout()
@@ -238,7 +238,7 @@ class mainWindow(QWidget):
         bars = PolyCollection(verts, facecolors=colors)
         register_matplotlib_converters()
         
-        plt.grid(color='Black', linestyle='solid')
+        #plt.grid(color='Black', linestyle='solid')
         self.ax.add_collection(bars)
         self.ax.xaxis.set_major_formatter(DateFormatter('%d-%m-%Y %H:%M:%S'))
         self.ax.set_xlim([fechaMin,fechaMax])
@@ -333,7 +333,7 @@ class mainWindow(QWidget):
         #self.tableWidget.resizeRowsToContents()  Ajustar alto de las celdas
         #self.tableWidget.setRowHeight(0, 40)
     
-    #Puebla la tabla con el numero de filas segun el zoom aplicado      
+    #Puebla la tabla de fotometros con el numero de filas segun el zoom aplicado      
     def changeRows(self, nRows, maxY):
         contador=0
         altura = 0
@@ -362,9 +362,9 @@ class mainWindow(QWidget):
                 value+=1
     
     #Tras detectar un evento de dibujo sobre la grafica, realiza la llamada para actualizar la tabla de fotometros
-    def drawEvent(self, event):
+    def fechaEvent(self, event):
         self.changeTableW()
-        self.setTimeLabels() 
+        self.setTimeLabels()
     
     #Modifica las labels del ejex, las cuales hacen referencia a la fecha minima y maxima de la grafica      
     def setTimeLabels(self):
@@ -372,8 +372,7 @@ class mainWindow(QWidget):
         fechaMax = self.getXMax()
         self.labelFmin.setText("<--- " + fechaMin)
         self.labelFmax.setText(fechaMax + " --->")
-        
-        
+            
                              
     def scrolling(self, event):
         if (self.contador%2)==0:

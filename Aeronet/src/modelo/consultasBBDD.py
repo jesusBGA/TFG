@@ -68,42 +68,66 @@ class consultaBBDD():
             print(sys.exc_info())
     
            
-    #Metodo para obtener los datos AOD para un fotometro y unas fechas dadas, con cloud Level 1.0
+    #Metodo para obtener los datos AOD para un fotometro,un rango de fechas y cloud Level 1.0
     def getAODChannelsL1(self, cursor, ph, station, fechaMin, fechaMax):
+        try:
+            cursor.execute(g.sql5, (station, ph, fechaMin, fechaMax))
+            return cursor.fetchall()
+        except:
+            print(sys.exc_info())
+            
+    #Metodo para obtener los datos AOD para un fotometro, un rango de fechas, dadas con cloud Level 1.5
+    def getAODChannelsL15(self, cursor, ph, station, fechaMin, fechaMax):
         try:
             cursor.execute(g.sql51, (station, ph, fechaMin, fechaMax))
             return cursor.fetchall()
         except:
             print(sys.exc_info())
             
-    #Metodo para obtener los datos AOD para un fotometro y unas fechas, dadas con cloud Level 1.5
-    def getAODChannelsL15(self, cursor, ph, station, fechaMin, fechaMax):
+    #Metodo para obtener las medidas de temperatura para un fotometro, un rango de fechas y cloud Level L1.0
+    def getTemperaturaL1(self, cursor, ph, station, fechaMin, fechaMax):
         try:
             cursor.execute(g.sql6, (station, ph, fechaMin, fechaMax))
             return cursor.fetchall()
         except:
             print(sys.exc_info())
             
-    #Metodo para obtener las medidas de temperatura para un fotometro y un rango de fechas
-    def getTemperatura(self, cursor, ph, station, fechaMin, fechaMax):
+    #Metodo para obtener las medidas de temperatura para un fotometro y un rango de fechas y cloud Level L1.5
+    def getTemperaturaL15(self, cursor, ph, station, fechaMin, fechaMax):
         try:
-            cursor.execute(g.sql7, (station, ph, fechaMin, fechaMax))
+            cursor.execute(g.sql61, (station, ph, fechaMin, fechaMax))
             return cursor.fetchall()
         except:
             print(sys.exc_info())
     
-    #Metodo para obtener las medidas de vapor de agua para un fotometro y un rango de fechas
-    def getWVapor(self, cursor, ph, station, fechaMin, fechaMax):
+    #Metodo para obtener las medidas de vapor de agua para un fotometro, un rango de fechas y cloud Level L1.0
+    def getWVaporL1(self, cursor, ph, station, fechaMin, fechaMax):
+        try:
+            cursor.execute(g.sql7, (ph, station, fechaMin, fechaMax))
+            return cursor.fetchall()
+        except:
+            print(sys.exc_info())
+            
+    #Metodo para obtener las medidas de vapor de agua para un fotometro, un rango de fechas y cloud Level L1.5
+    def getWVaporL15(self, cursor, ph, station, fechaMin, fechaMax):
+        try:
+            cursor.execute(g.sql71, (ph, station, fechaMin, fechaMax))
+            return cursor.fetchall()
+        except:
+            print(sys.exc_info())
+            
+    #Metodo para obtener las medidas de WExp para un fotometro, un rango de fechas y cloud Level L1.0
+    def getWExpL1(self, cursor, ph, station, fechaMin, fechaMax):
         try:
             cursor.execute(g.sql8, (ph, station, fechaMin, fechaMax))
             return cursor.fetchall()
         except:
             print(sys.exc_info())
             
-    #Metodo para obtener las medidas de WExp para un fotometro y un rango de fechas
-    def getWExp(self, cursor, ph, station, fechaMin, fechaMax):
+    #Metodo para obtener las medidas de WExp para un fotometro, un rango de fechas y cloud Level L1.5
+    def getWExpL15(self, cursor, ph, station, fechaMin, fechaMax):
         try:
-            cursor.execute(g.sql9, (ph, station, fechaMin, fechaMax))
+            cursor.execute(g.sql81, (ph, station, fechaMin, fechaMax))
             return cursor.fetchall()
         except:
             print(sys.exc_info())

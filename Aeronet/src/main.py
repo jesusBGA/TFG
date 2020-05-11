@@ -3,23 +3,9 @@ Created on 28 ene. 2020
 
 @author: Jesus Brezmes Gil-Albarellos
 '''
-from PyQt5.QtWidgets import QApplication
-from PyQt5 import QtCore
 
-from matplotlib.backends.backend_qt5agg import (NavigationToolbar2QT as NavigationToolbar)
-
-#import random
-from datetime import datetime, timedelta
-import pymysql
-import sys
-
-import src.modelo.globales as g
-from src.modelo.consultasBBDD import consultaBBDD
-from src.vista.mainWindow import mainWindow
 from src.controlador.mainWController import mainWController
-from src.controlador.graphController import graphController
-import src.vista.graphWindow as vg
-
+import sys
     
 class main:   
     def __init__(self): 

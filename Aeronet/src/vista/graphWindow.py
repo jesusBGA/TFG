@@ -28,6 +28,7 @@ class graphWindow(QWidget):
         self.fMax = datetime.strptime(fechaMax, '%Y-%m-%d %H:%M:%S')
         #Variable botón check
         self.check="AOD"
+        self.checkNubes="1.0"
         
         #Título de la ventana
         self.setWindowTitle(str(ph)+" "+str(station))
@@ -45,18 +46,23 @@ class graphWindow(QWidget):
         
         #Grafica y navigation toolbar
         self.fig, self.ax = plt.subplots()
-        self.fig.suptitle('AOD', fontsize=20)
+        #self.fig.tight_layout()
+        self.fig.suptitle('AOD 1.0', fontsize=20)
         register_matplotlib_converters()
-        self.ax.xaxis.set_major_formatter(DateFormatter('%d-%m-%Y %H:%M:%S'))
-        self.ax.set_xlim([self.fMin, self.fMax])
+        #Formato completo '%d-%b-%Y %H:%M:%S'
+        self.ax.xaxis.set_major_formatter(DateFormatter('%d-%b-%Y'))
+        self.ax.xaxis.set_major_locator(plt.MaxNLocator(6))
+        self.ax.set_xlim([self.fMin, self.fMax])   
         self.ax.set_ylim([-1, 8])
-        self.fig.autofmt_xdate()
+        #self.fig.autofmt_xdate()
         self.graficaLayout = QVBoxLayout()
         self.canvas = FigureCanvas(self.fig)
         self.toolBar = NavigationToolbar(self.canvas, self)
         self.graficaLayout.addWidget(self.canvas)
         self.graficaLayout.addWidget(self.toolBar)
         self.horizontalLayout.addLayout(self.graficaLayout)
+        self.ax.xaxis.set_major_formatter(DateFormatter('%d-%b-%Y'))
+        self.formatoFecha()
         
         #Layout de todos los botones
         self.botonesLayout = QVBoxLayout()
@@ -85,6 +91,7 @@ class graphWindow(QWidget):
         self.dataTypeVL.addWidget(self.Temp)
         self.groupButtons.addButton(self.Temp)
         self.PWR = QPushButton("PWR")
+        #self.PWR.clicked.connect(self.probando)
         self.dataTypeVL.addWidget(self.PWR)
         self.groupButtons.addButton(self.PWR)
         '''self.Int_V = QPushButton("Int V")
@@ -98,8 +105,10 @@ class graphWindow(QWidget):
         self.dataLevelGB = QGroupBox("Data Level")
         self.dataLevelVL = QVBoxLayout()
         self.L1 = QPushButton("L1.0")
+        self.L1.clicked.connect(self.filtroNubesL1)
         self.dataLevelVL.addWidget(self.L1)
         self.L15 = QPushButton("L1.5")
+        self.L15.clicked.connect(self.filtroNubesL15)
         self.dataLevelVL.addWidget(self.L15)
         self.dataLevelGB.setLayout(self.dataLevelVL)
         self.botonesLayout.addWidget(self.dataLevelGB)
@@ -136,6 +145,10 @@ class graphWindow(QWidget):
         self.commandsGB.setLayout(self.commandsVL)
         self.botonesLayout.addWidget(self.commandsGB)
         
+        #Evento que detecta la modificación de la gráfica
+        self.ax.callbacks.connect('xlim_changed', self.fechaEvent)
+        
+        #MainLayout de la ventana
         self.horizontalLayout.addLayout(self.botonesLayout)
         self.mainLayout.addLayout(self.horizontalLayout)
         self.setLayout(self.mainLayout)
@@ -186,53 +199,106 @@ class graphWindow(QWidget):
     #Reiniciar y dar formato a los ejes de la gráfica    
     def limpiaPlot(self):
         self.ax.clear()
-        self.ax.xaxis.set_major_formatter(DateFormatter('%d-%m-%Y %H:%M:%S'))
+        self.ax.callbacks.connect('xlim_changed', self.fechaEvent)
+        self.ax.xaxis.set_major_formatter(DateFormatter('%d-%b-%Y'))
+        self.ax.xaxis.set_major_locator(plt.MaxNLocator(6))
         self.ax.set_xlim([self.fMin, self.fMax])
-        self.ax.set_ylim([-1, 8])
-        self.fig.autofmt_xdate()
+        self.formatoFecha()
         self.canvas.draw_idle()
     
     #Fechas   
     def AOD_clicked(self):
         if (self.check!="AOD"):
-            self.fig.suptitle('AOD', fontsize=20) 
-            self.graphController.graficaAOD()
+            self.fig.suptitle('AOD '+self.checkNubes, fontsize=20)
+            if (self.checkNubes=="1.0"): 
+                self.graphController.graficaAOD(self.checkNubes)
+            elif (self.checkNubes=="1.5"):
+                self.graphController.graficaAOD(self.checkNubes)
             self.check="AOD"
         
     #Acción boton Wext    
     def Wexp_clicked(self):
         if (self.check!="WExp"):
-            self.fig.suptitle('WExp', fontsize=20) 
-            self.graphController.graficaWExp()
+            self.fig.suptitle('WExp '+self.checkNubes, fontsize=20)
+            if (self.checkNubes=="1.0"): 
+                self.graphController.graficaWExpL1()
+            elif (self.checkNubes=="1.5"):
+                self.graphController.graficaWExpL15()
             self.check="WExp"
         
     #Acción boton vapor de agua    
     def WaterVapor_clicked(self):
         if (self.check!="WaterVapor"):
-            self.fig.suptitle('Water Vapor', fontsize=20) 
-            self.graphController.graficaWVapor()
+            self.fig.suptitle('Water Vapor '+self.checkNubes, fontsize=20)
+            if (self.checkNubes=="1.0"): 
+                self.graphController.graficaWVaporL1()
+            elif (self.checkNubes=="1.5"):
+                self.graphController.graficaWVaporL15()
             self.check="WaterVapor"
     
     #Acción boton temperatura    
     def temperaturaClicked(self):
         if (self.check!="Temperatura"):
-            self.fig.suptitle('Temperatura', fontsize=20) 
-            self.graphController.graficaTemperatura()
+            self.fig.suptitle('Temperatura '+self.checkNubes, fontsize=20)
+            if (self.checkNubes=="1.0"): 
+                self.graphController.graficaTemperaturaL1()
+            elif (self.checkNubes=="1.5"):
+                self.graphController.graficaTemperaturaL15()
             self.check="Temperatura"
-        
+            
+    #Acción boton temperatura    
+    def PWRClicked(self):
+        if (self.check!="PWR"):
+            self.fig.suptitle('PWR '+self.checkNubes, fontsize=20)
+            if (self.checkNubes=="1.0"): 
+                self.graphController.graficaPWRL1()
+            elif (self.checkNubes=="1.5"):
+                self.graphController.graficaPWRL15() 
+            self.check="PWR"
+    
+    #Acción de botón Level 1.0
+    def filtroNubesL1(self):
+        if (self.checkNubes!="1.0"):
+            self.checkNubes="1.0"
+            self.cambiarFiltro()
+            
+    #Acción de botón Level 1.5
+    def filtroNubesL15(self):
+        if (self.checkNubes!="1.5"):
+            self.checkNubes="1.5"
+            self.cambiarFiltro()
+            
+    #Llamada a obtener datos si hay que cambiar el filtro de nubes
+    def cambiarFiltro(self):
+        if (self.check=="AOD"):
+            self.check="aod"
+            self.AOD_clicked()
+        elif (self.check=="Temperatura"):
+            self.check="Temp"
+            self.temperaturaClicked()
+        elif (self.check=="PWR"):
+            self.PWRClicked()
+            self.check="pwr"
+        elif (self.check=="WaterVapor"):
+            self.check="WV"
+            self.WaterVapor_clicked()
+        elif (self.check=="WExp"):
+            self.check="WE"
+            self.Wexp_clicked()
+            
     #Plotea datos sin canales (temperatura y vapor de agua)
     def plotSimpleData(self, dataX, dataY, tipo):
         self.limpiaPlot()
         self.toolBar._nav_stack.clear()
-        format = "black"
         yMax = dataY.values.max()
         yMin = dataY.values.min()
+        fmt = "black"
         if (tipo =="Temperatura"):
-            format = "ro-"
+            fmt = "ro-"
         elif (tipo == "Vapor de agua"):
-            format = "bo-"
+            fmt = "bo-"
         self.ax.set_ylim([yMin-1, yMax+1])
-        self.ax.plot(dataX, dataY, format, label = tipo)
+        self.ax.plot(dataX, dataY, fmt, label = tipo)
         self.ax.legend()
         self.canvas.draw_idle()
     
@@ -261,19 +327,57 @@ class graphWindow(QWidget):
     
     #Plotea los datos con canales (AOD y PWR)
     def plotChannelData(self, dataX, dataY, yMin, yMax, lowerE, upperE, desvS, nChannel, color, marker):
-        self.ax.errorbar(dataX, dataY, yerr=[lowerE, upperE], color = color, marker = marker, label = "Canal: "+str(nChannel))
-        self.ax.set_ylim([yMin-1, yMax+3])
-        self.ax.legend()
+        self.ax.errorbar(dataX, dataY, yerr=[lowerE, upperE], color = color, marker = marker, label = "Banda: "+str(nChannel))
+        self.ax.set_ylim([yMin-1, yMax+1])
+        self.ax.legend(loc = 0, fontsize = 12)
     
+    #Tras detectar un evento de dibujo sobre la grafica, actualiza el formato de la fecha del eje x
+    def fechaEvent(self, event):
+        self.formatoFecha()
+        
+    #Obtener valores minimo actual del eje x
+    def getXMin(self):
+        fecha = self.ax.get_xlim()
+        fmin = str(num2date(fecha[0]))
+        return fmin[0:19]
+    
+    #Obtener valor maximo actual del eje x
+    def getXMax(self):
+        fecha = self.ax.get_xlim()
+        fmax = str(num2date(fecha[1]))
+        return fmax[0:19]
+    
+    #Definir el formato de la fecha segun el zoom aplicado
+    def formatoFecha(self):
+        fechaMin = self.getXMin()
+        anoMin = fechaMin[0:4] 
+        mesMin = fechaMin[5:7]
+        diaMin = fechaMin[8:10]
+        fechaMax = self.getXMax()
+        anoMax = fechaMax[0:4]
+        mesMax = fechaMax[5:7]
+        diaMax = fechaMax[8:10]
+        if ((diaMax==diaMin) & (mesMax==mesMin) & (anoMax==anoMin)):
+            self.ax.xaxis.set_major_formatter(DateFormatter('%d-%H:%M'))
+        elif((diaMax!=diaMin) & (mesMax==mesMin) & (anoMax==anoMin)):
+            self.ax.xaxis.set_major_formatter(DateFormatter('%d-%b %H:00'))
+        else:
+            self.ax.xaxis.set_major_formatter(DateFormatter('%d-%b-%Y'))
+        self.canvas.draw_idle()    
+    
+            
     #Graficar datos con errorbar y por canales EN PRUEBAS
     def plotDatosError(self, x, y, yErrorLower, yErrorUpper, format1, format2, canal):
         self.ax.plot(x, y, format1, label= "Canal "+str(canal))
         self.ax.errorbar(x, y, yerr=[[yErrorLower], [yErrorUpper]], fmt=format2)
         
     #Fechas   
-    def WaterVaporclicked(self):
+    def probando(self, event):
         fecha = self.ax.get_xlim()
         f1= str(num2date(fecha[0]))
         f2= str(num2date(fecha[1]))
-        print(f1[0:19])
-        print(f2[0:19])   
+        '''print(f1[0:19])
+        print(f2[0:19]) '''
+        self.formatoFecha()
+        self.canvas.draw()
+        
