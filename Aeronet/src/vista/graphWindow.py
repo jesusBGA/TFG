@@ -91,7 +91,7 @@ class graphWindow(QWidget):
         self.dataTypeVL.addWidget(self.Temp)
         self.groupButtons.addButton(self.Temp)
         self.PWR = QPushButton("PWR")
-        #self.PWR.clicked.connect(self.probando)
+        self.PWR.clicked.connect(self.PWRClicked)
         self.dataTypeVL.addWidget(self.PWR)
         self.groupButtons.addButton(self.PWR)
         '''self.Int_V = QPushButton("Int V")
@@ -277,8 +277,8 @@ class graphWindow(QWidget):
             self.check="Temp"
             self.temperaturaClicked()
         elif (self.check=="PWR"):
-            self.PWRClicked()
             self.check="pwr"
+            self.PWRClicked()   
         elif (self.check=="WaterVapor"):
             self.check="WV"
             self.WaterVapor_clicked()
@@ -297,6 +297,8 @@ class graphWindow(QWidget):
             fmt = "ro-"
         elif (tipo == "Vapor de agua"):
             fmt = "bo-"
+        elif (tipo =="PWR"):
+            fmt = "go-"
         self.ax.set_ylim([yMin-1, yMax+1])
         self.ax.plot(dataX, dataY, fmt, label = tipo)
         self.ax.legend()

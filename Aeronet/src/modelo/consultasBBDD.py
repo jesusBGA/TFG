@@ -132,4 +132,18 @@ class consultaBBDD():
         except:
             print(sys.exc_info())
             
-    
+    #Metodo para obtener las medidas PWR para un fotometro, un rango de fechas y cloud Level L1.0
+    def getPWRL1(self, cursor, ph, station, fechaMin, fechaMax):
+        try:
+            cursor.execute(g.sql9, (ph, station, fechaMin, fechaMax))
+            return cursor.fetchall()
+        except:
+            print(sys.exc_info())
+            
+    #Metodo para obtener las medidas PWR para un fotometro, un rango de fechas y cloud Level L1.5
+    def getPWRL15(self, cursor, ph, station, fechaMin, fechaMax):
+        try:
+            cursor.execute(g.sql91, (ph, station, fechaMin, fechaMax))
+            return cursor.fetchall()
+        except:
+            print(sys.exc_info())
