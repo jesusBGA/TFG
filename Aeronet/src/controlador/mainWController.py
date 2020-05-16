@@ -6,13 +6,14 @@ Created on 28 ene. 2020
 import pymysql
 import sys
 from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QMessageBox
 
 import src.modelo.globales as g
 import src.vista.mainWindow as v
 import src.modelo.consultasBBDD as c
 from src.controlador.graphController import graphController
 import src.modelo.phStationObject as objecto
-from src.modelo.globales import minFecha
+from datetime import datetime
 
 class mainWController:
     
@@ -27,11 +28,11 @@ class mainWController:
         self.cursor = self.db.cursor()
         app = QApplication(sys.argv)
         datosDistinct = self.getDatosPhStation("")
-        datosCompletos = self.getDatosCompletos("")
-        #fechaMin = self.getFechaMin("")
-        #fechaMax = self.getFechaMax("")
+        self.datosCompletos = self.getDatosCompletos("", "")
+        fechaMin = self.getFechaMin("")
+        fechaMax = self.getFechaMax("")
         self.screen = v.mainWindow(self.main_controller)
-        self.screen.plotUsoPh(datosDistinct, datosCompletos, self.fechaMin, self.fechaMax)
+        self.screen.plotUsoPh(datosDistinct, self.datosCompletos, fechaMin, fechaMax, "")
         self.screen.setDatosTabla(datosDistinct)
         self.screen.show()
         sys.exit(app.exec_())
@@ -45,12 +46,15 @@ class mainWController:
         return datos
     
     #Devuelve una lista de objetos con el n de fotometro, la estación, el conjunto de fechas que estáactivo y con los eprom type y subtype
-    def getDatosCompletos(self, filtro):
+    def getDatosCompletos(self, filtro, cloudLevel):
         if (filtro == ""):
             datos=c.consultaBBDD.getPhStationDates(self, self.cursor)
         else:
             datos=c.consultaBBDD.getPhStationDates21(self, self.cursor, filtro)
-        datosCompletos = self.toPhStationObjectPrueba(datos, "1.0")
+        if (cloudLevel == "1.5"):
+            datosCompletos = self.toPhStationObjectCloudL(datos, cloudLevel)
+        else:
+            datosCompletos = self.toPhStationObject(datos)
         return datosCompletos
     
     #Devuelve la fecha minima de uso de los fotometros, para establecer limite inferior eje x de la grafica
@@ -108,15 +112,26 @@ class mainWController:
         return filtro
     
     #Recupera los datos de los fotometros con filtro eprom_type/subtype, device, site   
-    def filtroEpromPhSite(self, tipo, station, ph):
+    def filtroEpromPhSite(self, tipo, station, ph, cloudLevel):
         filtro = self.tipoFiltro(tipo, station, ph)
         datosDistinct = self.getDatosPhStation(filtro)
         self.screen.limpiaPlot()
         if (any(map(len, datosDistinct))):
-            datosCompletos = self.getDatosCompletos(filtro)
-            fechaMin = self.getFechaMin(filtro)
-            fechaMax = self.getFechaMax(filtro)    
-            self.screen.plotUsoPh(datosDistinct, datosCompletos, fechaMin, fechaMax)
+            if (cloudLevel == "1.5"):
+                datosCompletos = self.getDatosCompletos(filtro, cloudLevel)
+                fechaMin = self.fechaMin
+                fechaMax = self.fechaMax
+            else:
+                datosCompletos = self.getDatosCompletos(filtro, "")
+                fechaMin = self.getFechaMin(filtro)
+                fechaMax = self.getFechaMax(filtro)
+                cloudLevel = ""
+            if (datosCompletos):    
+                self.screen.plotUsoPh(datosDistinct, datosCompletos, fechaMin, fechaMax, cloudLevel)
+            else:
+                self.screen.limpiaTabla()
+                self.screen.reiniciaCloudLevel()
+                self.mensajeNoDatosCloudL15(tipo, ph, station)    
         else:
             self.screen.limpiaTabla()
     
@@ -145,25 +160,8 @@ class mainWController:
                 datosCompletos.append(o)
         return datosCompletos
     
-    #Invoca la ventana graphWindow, la cual muestra datos para un fotometro concreto
-    def graphWindow(self, ph, fechaMin, fechaMax):
-        fot = ph.split()
-        nFotometro = fot[0]
-        station = fot[1]
-        '''datos= consultaBBDD.getAODChannels(self, self.cursor, ph)
-        screen2 = vg.graphWindow(datos)
-        screen2.plotGrafica(datos)
-        screen2.show()'''
-        self.graphController = graphController()
-        self.graphController.start(nFotometro, station, fechaMin, fechaMax)
-    
-    #Terminar la ejecucion    
-    def salir(self):
-        sys.exit(1)
-        
-    
     #Método para tranformar la lista de fotometros consultada para su tratamiento
-    def toPhStationObjectPrueba(self, data, cloudLevel):
+    def toPhStationObjectCloudL(self, data, cloudLevel):
         indices =[]
         datosCompletos=[]
         contador=0
@@ -173,13 +171,15 @@ class mainWController:
             fMin = self.getMinFechaCloudL(str(row[0]), row[2], row[3], cloudLevel)
             fMax = self.getMaxFechaCloudL(str(row[0]), row[2], row[3], cloudLevel)
             if ((fMin != "") & (fMax != "")):
+                #fMin = datetime.strptime(fMin, '%Y-%m-%d %H:%M:%S')
+                #fMax = datetime.strptime(fMax, '%Y-%m-%d %H:%M:%S')
                 if (self.fechaMin == ""):
                     self.fechaMin = fMin
                 if (self.fechaMin > fMin):
                     self.fechaMin = fMin
                 if (self.fechaMax == ""):
                     self.fechaMax = fMax
-                if (self.fechaMin > fMin):
+                if (self.fechaMax < fMax):
                     self.fechaMax = fMax
                 aux = str(row[0])+" "+ str(row[1])
                 if aux not in indices:
@@ -202,6 +202,31 @@ class mainWController:
                     o.setDateOfUse(fechas)
                     datosCompletos.append(o)
         return datosCompletos
+    
+    #Invoca la ventana graphWindow, la cual muestra datos para un fotometro concreto
+    def graphWindow(self, ph, fechaMin, fechaMax):
+        fot = ph.split()
+        nFotometro = fot[0]
+        station = fot[1]
+        '''datos= consultaBBDD.getAODChannels(self, self.cursor, ph)
+        screen2 = vg.graphWindow(datos)
+        screen2.plotGrafica(datos)
+        screen2.show()'''
+        self.graphController = graphController()
+        self.graphController.start(nFotometro, station, fechaMin, fechaMax)
+    
+    #Mensaje no hay datos   
+    def mensajeNoDatosCloudL15(self, tipo, ph, station):
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Warning)
+        msg.setText("No hay datos AOD(1.5) para la búsqueda:\n"+ph+" "+station+"\ndel tipo:\n"+tipo)
+        msg.setStandardButtons(QMessageBox.Ok)
+        msg.exec()
+    
+    #Terminar la ejecucion    
+    def salir(self):
+        sys.exit(1)
+        
     
     #Recupera los datos de los fotometros con el filtro solo sobre eprom_type/subtype
     '''def filtroSoloEprom(self, tipo):

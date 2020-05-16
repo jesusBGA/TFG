@@ -14,6 +14,7 @@ from matplotlib.dates import DateFormatter
 
 from matplotlib.dates import num2date
 import math
+import pandas as pd
 import matplotlib.pyplot as plt
 plt.rcParams['toolbar'] = 'toolmanager'
 import matplotlib.dates as mdates
@@ -138,7 +139,8 @@ class mainWindow(QWidget):
         #Variables auxiliares para el manejo de los radioButtons
         self.auxEprom = ""
         self.aux2Eprom = ""
-        self.auxNubes = ""
+        self.auxNubes = "1.0"
+        self.aux2Nubes = ""
         
         #Campos de texto filtrado por ph y estacion
         self.campo = QGroupBox("Búsqueda")
@@ -252,7 +254,7 @@ class mainWindow(QWidget):
         #self.tableWidget.setVerticalHeaderLabels(labels)
         
     #Metodo para plotear la grafica de uso
-    def plotUsoPh(self, datosPhSt, datosCompletos, fechaMin, fechaMax):
+    def plotUsoPh(self, datosPhSt, datosCompletos, fechaMin, fechaMax, cloudLevel):
         #print (str(datosCompletos[0].__getattribute__('phStation')))
         longitud=len(datosPhSt)
         self.scrollBar.setMaximum(longitud)
@@ -260,9 +262,9 @@ class mainWindow(QWidget):
         self.scrolled = longitud
         self.fMin=fechaMin
         self.fMax=fechaMax
+        self.alturaTabla=self.tableWidget.height()
         self.datosPH=datosPhSt
         self.datosC=datosCompletos
-        self.alturaTabla=self.tableWidget.height()
         verts = []
         colors = []
         labels = []
@@ -270,13 +272,35 @@ class mainWindow(QWidget):
         cats={}
         colormapping={}
         
-        for data in datosPhSt:
-            clave=str(data[0])+" "+str(data[1])
-            cats[clave]=longitud
-            labels.insert(0, clave)
-            yPosition.insert(0, longitud)
-            longitud-=1
+        if (cloudLevel == "1.5"):
+            self.aux2Nubes="1.5"
+            df = pd.DataFrame([t.__dict__ for t in self.datosC])
+            datosPhSt = df['phStation']
+            self.datosPH = datosPhSt
+            longitud=len(datosPhSt)
+            self.scrollBar.setMaximum(longitud)
+            self.scroll = longitud
+            self.scrolled = longitud
+            #Posición en el eje y de cada fotometro
+            for data in datosPhSt:
+                clave = data
+                cats[clave]=longitud
+                labels.insert(0, clave)
+                yPosition.insert(0, longitud)
+                longitud-=1
+        else:
+            self.aux2Nubes = ""
+            #Posición en el eje y de cada fotometro
+            for data in datosPhSt:
+                clave=str(data[0])+" "+str(data[1])
+                cats[clave]=longitud
+                labels.insert(0, clave)
+                yPosition.insert(0, longitud)
+                longitud-=1
         
+        
+        
+        #Color según el eprom_type/subtype
         for e in self.datosC:
             clave = e.__getattribute__('phStation')
             if (e.__getattribute__('eprom_type')== 'standard'):
@@ -289,7 +313,8 @@ class mainWindow(QWidget):
                 colormapping[clave]="tab:blue"
             else:    
                 colormapping[clave]="gray"
-            
+        
+        #Representación de los fotometros por poligonos    
         for elemento in datosCompletos:
             fechas = elemento.__getattribute__('dateOfUse')
             phStation = elemento.__getattribute__('phStation')
@@ -300,21 +325,16 @@ class mainWindow(QWidget):
                       (mdates.date2num(f[1]), cats[phStation]-.4),
                       (mdates.date2num(f[0]), cats[phStation]-.4)]
                 verts.append(v)
-                colors.append(colormapping[phStation])
-                
+                colors.append(colormapping[phStation])        
         bars = PolyCollection(verts, facecolors=colors)
         register_matplotlib_converters()
         
-        #plt.grid(color='Black', linestyle='solid')
+        #Configuracion de los ejes
         self.ax.add_collection(bars)
         self.ax.xaxis.set_major_formatter(DateFormatter('%d-%m-%Y %H:%M:%S'))
         self.ax.set_xlim([fechaMin,fechaMax])
         self.ax.set_xticklabels([])
-        #self.fig.autofmt_xdate()
-        
-        #self.ax.set_yticks(0-len(datosPhSt))
         self.ax.set_yticks(yPosition)
-        #self.ax.set_yticklabels(labels)
         if (len(datosPhSt)>14):
             self.ax.set_ylim([len(datosPhSt)-14.5, len(datosPhSt)+.5])
         else:
@@ -422,8 +442,11 @@ class mainWindow(QWidget):
             self.tableWidget.reset()
             self.tableWidget.setRowCount(nRows)
             while (contador<nRows):
-                i = self.datosPH[value]
-                item = str(i[0])+"  "+i[1] 
+                if (self.aux2Nubes=="1.5"):
+                    item = self.datosPH[value]
+                else:
+                    i = self.datosPH[value]
+                    item = str(i[0])+"  "+i[1] 
                 cellinfo = QTableWidgetItem(item)
                 cellinfo.setFlags( QtCore.Qt.ItemIsSelectable |  QtCore.Qt.ItemIsEnabled )
                 self.tableWidget.setItem(contador,0, cellinfo)
@@ -448,6 +471,7 @@ class mainWindow(QWidget):
     def epromClicked(self, button):
         clicked = button.text()
         self.aux2Eprom = clicked
+        #Implica quitar el filtro, equivale a pulsar sobre el eprom que está marcado
         if (self.auxEprom == self.aux2Eprom):
             self.group.setExclusive(False)
             self.group.checkedButton().setChecked(False)
@@ -459,31 +483,48 @@ class mainWindow(QWidget):
             if (message != ""):
                 self.mensajeErrorFormulario(message)
             else: 
-                self.main_controller.filtroEpromPhSite("", station, ph)
+                self.main_controller.filtroEpromPhSite("", station, ph, "")
                 self.canvas.draw_idle()
+        #Implica que el filtro eprom cambia
         else:
             if (self.group2.checkedButton()):
-                filtroNubes = self.group2.checkedButton().text()
-                print (filtroNubes)
+                if (self.group2.checkedButton()):
+                    cloudLevel = self.group2.checkedButton().text()
+                    if (cloudLevel == "1.0"):
+                        cloudLevel = ""
                 message = ""
                 message, ph = self.compruebaDevice(message)
                 message, station = self.compruebaSite(message)   
                 if (message != ""):
                     self.mensajeErrorFormulario(message)
                 else: 
-                    self.main_controller.filtroEpromPhSite(clicked, station, ph)
+                    self.main_controller.filtroEpromPhSite(clicked, station, ph, cloudLevel)
                     self.canvas.draw_idle()
                 self.auxEprom = clicked
         
     #Acción de seleccionar un botónn de eprom/subeprom type        
     def nubesClicked(self, button):
         clicked = button.text()
-        if (self.auxNubes == ""):
-            self.auxNubes = clicked
+        if (clicked == "AOD(1.0)"):
+            clicked = "1.0"
+        else:
+            clicked = "1.5"
         if (self.auxNubes != clicked):
-            if (self.group.checkedButton()):
-                filtroEprom = self.group.checkedButton().text()
-                print (filtroEprom)
+            if (self.group2.checkedButton()):
+                cloudLevel = clicked
+                if (cloudLevel == "1.0"):
+                        cloudLevel = ""
+            message = ""
+            message, ph = self.compruebaDevice(message)
+            message, station = self.compruebaSite(message)   
+            if (message != ""):
+                self.mensajeErrorFormulario(message)
+            else: 
+                if (self.group.checkedButton()):
+                    filtroEprom = self.group.checkedButton().text()
+                else:
+                    filtroEprom = ""    
+                self.main_controller.filtroEpromPhSite(filtroEprom, station, ph, cloudLevel)
         self.auxNubes = clicked
     
     #Acción de pulsar enter en los campos de entrada device y site
@@ -498,7 +539,11 @@ class mainWindow(QWidget):
                 filtroEprom = self.group.checkedButton().text()
             else:
                 filtroEprom = ""
-            self.main_controller.filtroEpromPhSite(filtroEprom, station, ph)
+            if (self.group2.checkedButton()):
+                cloudLevel = self.group2.checkedButton().text()
+                if (cloudLevel == "1.0"):
+                    cloudLevel = ""
+            self.main_controller.filtroEpromPhSite(filtroEprom, station, ph, cloudLevel)
     
     #Comprueba el formulario del campo de entrada de datos site
     def compruebaSite(self, message):
@@ -564,6 +609,11 @@ class mainWindow(QWidget):
     def limpiaTabla(self):
         self.tableWidget.clear()
         self.tableWidget.reset()
+    
+    #Vuelve a poner a AOD(1.0) como opción, consecuencia de no haber encontrado datos AOD(1.5)    
+    def reiniciaCloudLevel(self):
+        self.n1.setChecked(True)
+        self.auxNubes = "1.0"
     
     #Comunica al controller la finalizacion de la ejecucion
     def quit(self):
