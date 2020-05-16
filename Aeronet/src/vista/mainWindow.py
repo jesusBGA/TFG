@@ -3,11 +3,10 @@ Created on 29 ene. 2020
 
 @author: Jesus Brezmes Gil-Albarellos
 '''
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 #from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar, FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
-from mysql.connector import (connection)
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QFont
 from pandas.plotting import register_matplotlib_converters
@@ -16,7 +15,6 @@ from matplotlib.dates import DateFormatter
 from matplotlib.dates import num2date
 import math
 import matplotlib.pyplot as plt
-from matplotlib import backend_bases
 plt.rcParams['toolbar'] = 'toolmanager'
 import matplotlib.dates as mdates
 from matplotlib.collections import PolyCollection
@@ -59,10 +57,9 @@ class mainWindow(QWidget):
         self.tablaL.addWidget(self.tableWidget)
         self.tablaL.addItem(QtWidgets.QSpacerItem(0, 25))
         
-        
+        #Layout y botón de salir
         self.quitButton = QPushButton("Salir")
         self.quitButton.clicked.connect(self.quit)
-
         self.hbox = QHBoxLayout()
         self.hbox.addStretch(1)
         self.hbox.setContentsMargins(0,0,10,10)
@@ -81,6 +78,7 @@ class mainWindow(QWidget):
         s_widget = QWidget()
         s_widget.setLayout(self.scrollLayout)
         s_widget.setFixedWidth(50)
+        s_widget.setFixedHeight(480)
         self.scrollBar = QtWidgets.QScrollBar()
         self.scrollBar.setFixedWidth(30)
         self.scrollBar.sliderMoved.connect(self.sliderValue)
@@ -120,7 +118,7 @@ class mainWindow(QWidget):
         l_widget = QWidget()
         l_widget.setLayout(self.labelsLayout)
         l_widget.setFixedHeight(37)
-        self.labelsLayout.addItem(QtWidgets.QSpacerItem(175, 0))
+        self.labelsLayout.addItem(QtWidgets.QSpacerItem(170, 0))
         self.labelFmin = QLabel()
         self.labelsLayout.addWidget(self.labelFmin)
         self.labelFmin.setAlignment(QtCore.Qt.AlignLeft)
@@ -128,8 +126,74 @@ class mainWindow(QWidget):
         self.labelFmax = QLabel()
         self.labelsLayout.addWidget(self.labelFmax)
         self.labelFmax.setAlignment(QtCore.Qt.AlignRight)
-        self.labelsLayout.addItem(QtWidgets.QSpacerItem(85, 0))
+        self.labelsLayout.addItem(QtWidgets.QSpacerItem(80, 0))
         self.lLayout.addWidget(l_widget)
+        
+        #Layout filtro de datos
+        self.filtroLayout = QHBoxLayout()
+        self.filtroLayout.setObjectName("filtroLayout")
+        f_widget = QWidget()
+        f_widget.setLayout(self.filtroLayout)
+        f_widget.setFixedHeight(158)
+        #Variables auxiliares para el manejo de los radioButtons
+        self.auxEprom = ""
+        self.aux2Eprom = ""
+        self.auxNubes = ""
+        
+        #Campos de texto filtrado por ph y estacion
+        self.campo = QGroupBox("Búsqueda")
+        self.campoData = QVBoxLayout()
+        self.labelDevice = QLabel()
+        self.labelDevice.setText("Device:")
+        self.device = QLineEdit(self)
+        self.device.returnPressed.connect(self.enterDevSite)
+        self.labelSite = QLabel()
+        self.labelSite.setText("Site:")
+        self.site = QLineEdit(self)
+        self.site.returnPressed.connect(self.enterDevSite)
+        self.campoData.addWidget(self.labelDevice)
+        self.campoData.addWidget(self.device)
+        self.campoData.addWidget(self.labelSite)
+        self.campoData.addWidget(self.site)
+        self.campo.setLayout(self.campoData)
+        self.filtroLayout.addWidget(self.campo)
+        
+        #Botones filtrado por eprom y subeprom type
+        self.eprom = QGroupBox("Eprom_type/subtype")
+        self.epromData = QVBoxLayout()
+        self.standard = QRadioButton('Standard')
+        self.digital = QRadioButton('Digital Extended')
+        self.triple = QRadioButton('Triple')
+        self.dualpolar = QRadioButton('Dualpolar')
+        #option_1.setChecked(True)  
+        self.group = QButtonGroup(self)
+        self.group.addButton(self.standard)
+        self.group.addButton(self.digital)
+        self.group.addButton(self.triple)
+        self.group.addButton(self.dualpolar)
+        self.epromData.addWidget(self.standard)
+        self.epromData.addWidget(self.digital)
+        self.epromData.addWidget(self.triple)
+        self.epromData.addWidget(self.dualpolar)
+        self.eprom.setLayout(self.epromData)
+        self.filtroLayout.addWidget(self.eprom)
+        self.group.buttonClicked['QAbstractButton *'].connect(self.epromClicked)
+        
+        #Botones filtrado aod(1.0) y aod(1.5)
+        self.nubes = QGroupBox("Cloud Level")
+        self.nubesData = QVBoxLayout()
+        self.n1 = QRadioButton('AOD(1.0)')
+        self.n15 = QRadioButton('AOD(1.5)')
+        self.n1.setChecked(True)
+        self.group2 = QButtonGroup(self)
+        self.group2.addButton(self.n1)
+        self.group2.addButton(self.n15)
+        self.nubesData.addWidget(self.n1)
+        self.nubesData.addWidget(self.n15)
+        self.nubes.setLayout(self.nubesData)
+        self.filtroLayout.addWidget(self.nubes)
+        self.filtroLayout.addItem(QtWidgets.QSpacerItem(400, 0))
+        self.group2.buttonClicked['QAbstractButton *'].connect(self.nubesClicked)
         
         #Estructuracion de los layouts
         self.graficaLayout.addLayout(self.tablaL)
@@ -140,6 +204,7 @@ class mainWindow(QWidget):
         self.horizontalLayout.addLayout(self.graficaLayout)
         self.horizontalLayout.addLayout(self.lLayout)
         self.horizontalLayout.addLayout(self.toolbarLayout)
+        self.horizontalLayout.addWidget(f_widget)
         self.horizontalLayout.setContentsMargins(10, 10, 10, 10)
         
         '''self.widget = QWidget()
@@ -152,7 +217,7 @@ class mainWindow(QWidget):
         
         #Layout de la grafica 
         self.mainLayout = QVBoxLayout()
-        self.mainLayout.setContentsMargins(10, 10, 10, 178)
+        self.mainLayout.setContentsMargins(10, 10, 10, 10)
         self.setLayout(self.mainLayout)
         
         #Layout de la barra temporal
@@ -214,7 +279,9 @@ class mainWindow(QWidget):
         
         for e in self.datosC:
             clave = e.__getattribute__('phStation')
-            if (e.__getattribute__('eprom_subtype')== 'triple'):
+            if (e.__getattribute__('eprom_type')== 'standard'):
+                colormapping[clave]="gray"
+            elif (e.__getattribute__('eprom_subtype')== 'triple'):
                 colormapping[clave]="tab:orange"
             elif ((e.__getattribute__('eprom_subtype')== 'digital') & (e.__getattribute__('eprom_type')== 'extended')):
                 colormapping[clave]="tab:brown"
@@ -248,35 +315,40 @@ class mainWindow(QWidget):
         #self.ax.set_yticks(0-len(datosPhSt))
         self.ax.set_yticks(yPosition)
         #self.ax.set_yticklabels(labels)
-        self.ax.set_ylim([len(datosPhSt)-14.5, len(datosPhSt)+.5])
+        if (len(datosPhSt)>14):
+            self.ax.set_ylim([len(datosPhSt)-14.5, len(datosPhSt)+.5])
+        else:
+            self.ax.set_ylim([len(datosPhSt)-len(datosPhSt)+.5, len(datosPhSt)+.5])
         self.ax.set_yticklabels([])
+        self.toolBar.clearCursor()
         self.fig.tight_layout()                      
     
     #Accion del slider para navegar por la gráfica
     def sliderValue(self):
-        value = self.scroll - self.scrollBar.value()
-        fmin= self.getXMin()
-        fmax= self.getXMax()
-        if ((self.scroll-value)<5):
-            self.ax.set_ylim([self.scroll-14.5, self.scroll+.5])
-            self.canvas.draw_idle()
-            self.scrolled=self.scroll
-        elif ((self.scroll - self.scrollBar.value())<15):
-            self.ax.set_ylim([0, 15])
-            self.canvas.draw_idle()
-            self.scrolled = 15
-        elif (value>=0 & value<=self.scroll):
-            self.ax.set_ylim([value-14.5, value+.5])
-            self.canvas.draw_idle()
-            self.scrolled=value
+        if(self.scroll>15):
+            value = self.scroll - self.scrollBar.value()
+            fmin= self.getXMin()
+            fmax= self.getXMax()
+            if ((self.scroll-value)<5):
+                self.ax.set_ylim([self.scroll-14.5, self.scroll+.5])
+                self.canvas.draw_idle()
+                self.scrolled=self.scroll
+            elif ((self.scroll - self.scrollBar.value())<15):
+                self.ax.set_ylim([0.5, 15.5])
+                self.canvas.draw_idle()
+                self.scrolled = 15
+            elif (value>=0 & value<=self.scroll):
+                self.ax.set_ylim([value-14.5, value+.5])
+                self.canvas.draw_idle()
+                self.scrolled=value
         
-        #print(self.tableWidget.rowAt(0))
-        #self.tableWidget.scrollToItem(self.tableWidget.itemAt(0, 19), QAbstractItemView.EnsureVisible | QAbstractItemView.PositionAtTop )
-        #Control para no borrar registro de acciones si se mueve el scroll con el zoom activado
-        self.toolBar.push_current()
-        #self.changeTableW()
-        if ((fmin==str(self.fMin)) & (fmax==str(self.fMax))):
-            self.toolBar.clearCursor()
+            #print(self.tableWidget.rowAt(0))
+            #self.tableWidget.scrollToItem(self.tableWidget.itemAt(0, 19), QAbstractItemView.EnsureVisible | QAbstractItemView.PositionAtTop )
+            #Control para no borrar registro de acciones si se mueve el scroll con el zoom activado
+            self.toolBar.push_current()
+            #self.changeTableW()
+            if ((fmin==str(self.fMin)) & (fmax==str(self.fMax))):
+                self.toolBar.clearCursor()
     
     #Obtener valores minimo actual del eje x
     def getXMin(self):
@@ -305,6 +377,8 @@ class mainWindow(QWidget):
         fmin= self.getXMin()
         fmax= self.getXMax()
         minY = self.getYMin()
+        if (minY<0):
+            minY = 0
         maxY = self.getYMax()
         if ((fmin==str(self.fMin)) & (fmax==str(self.fMax))):
             if (minY!=0):
@@ -321,11 +395,8 @@ class mainWindow(QWidget):
         d = maxY-minY
         dS = self.scroll-self.scrollBar.value()
         if (d<15):
-            if(dS<15):
-                rows=15
-            else:
-                rows = d 
-        elif (dS<15 & dS!=0):
+            rows=d         
+        elif(dS<15 & dS!=0):
             rows = dS
         else:
             rows=15
@@ -372,7 +443,134 @@ class mainWindow(QWidget):
         fechaMax = self.getXMax()
         self.labelFmin.setText("<--- " + fechaMin)
         self.labelFmax.setText(fechaMax + " --->")
+    
+    #Acción de seleccionar un botónn de eprom/subeprom type        
+    def epromClicked(self, button):
+        clicked = button.text()
+        self.aux2Eprom = clicked
+        if (self.auxEprom == self.aux2Eprom):
+            self.group.setExclusive(False)
+            self.group.checkedButton().setChecked(False)
+            self.group.setExclusive(True)
+            self.auxEprom = ""
+            message = ""
+            message, ph = self.compruebaDevice(message)
+            message, station = self.compruebaSite(message)   
+            if (message != ""):
+                self.mensajeErrorFormulario(message)
+            else: 
+                self.main_controller.filtroEpromPhSite("", station, ph)
+                self.canvas.draw_idle()
+        else:
+            if (self.group2.checkedButton()):
+                filtroNubes = self.group2.checkedButton().text()
+                print (filtroNubes)
+                message = ""
+                message, ph = self.compruebaDevice(message)
+                message, station = self.compruebaSite(message)   
+                if (message != ""):
+                    self.mensajeErrorFormulario(message)
+                else: 
+                    self.main_controller.filtroEpromPhSite(clicked, station, ph)
+                    self.canvas.draw_idle()
+                self.auxEprom = clicked
+        
+    #Acción de seleccionar un botónn de eprom/subeprom type        
+    def nubesClicked(self, button):
+        clicked = button.text()
+        if (self.auxNubes == ""):
+            self.auxNubes = clicked
+        if (self.auxNubes != clicked):
+            if (self.group.checkedButton()):
+                filtroEprom = self.group.checkedButton().text()
+                print (filtroEprom)
+        self.auxNubes = clicked
+    
+    #Acción de pulsar enter en los campos de entrada device y site
+    def enterDevSite(self):
+        message = ""
+        message, ph = self.compruebaDevice(message)
+        message, station = self.compruebaSite(message)   
+        if (message != ""):
+            self.mensajeErrorFormulario(message)
+        else: 
+            if (self.group.checkedButton()):
+                filtroEprom = self.group.checkedButton().text()
+            else:
+                filtroEprom = ""
+            self.main_controller.filtroEpromPhSite(filtroEprom, station, ph)
+    
+    #Comprueba el formulario del campo de entrada de datos site
+    def compruebaSite(self, message):
+        try:
+            if (self.site.text()):
+                if (int(self.site.text())):
+                    station = ""
+                    message = message + "\nEl campo Site no puede ser un número."
+                    self.site.clear()
+            else:
+                station = "" 
+        except:
+            station = self.site.text()
+        return message, station
+        
+    #Comprueba el formulario del campo de entrada de datos site    
+    def compruebaDevice(self, message):
+        try:
+            if (self.device.text()): 
+                ph = int(self.device.text())
+                ph = str(self.device.text())
+            else:
+                ph = ""
+        except:
+            ph = ""
+            message = message + "\nEl campo Device debe ser un número."
+            self.device.clear()
+        return message, ph
+    
+    #Mensaje error formulario
+    def mensajeErrorFormulario(self, message):
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Warning)
+        msg.setText("Comprobación del formulario: \n"+message)
+        msg.setStandardButtons(QMessageBox.Ok)
+        msg.exec()
+    
+    #Acción de pulsar sobre un item de la tabla de fotometros    
+    def on_click(self):
+        print("\n")
+        for currentQTableWidgetItem in self.tableWidget.selectedItems():
+            phStation = currentQTableWidgetItem.text()
+        fecha = self.ax.get_xlim()
+        f1 = str(num2date(fecha[0]))
+        f2 = str(num2date(fecha[1]))
+        fMin = f1[0:19]
+        fMax = f2[0:19]
+        self.main_controller.graphWindow(phStation, fMin, fMax)
+        #main.graphWindow(self, phStation, fMin ,fMax)
             
+    #Reiniciar y dar formato a los ejes de la gráfica    
+    def limpiaPlot(self):
+        self.ax.clear()
+        self.ax.xaxis.set_major_formatter(DateFormatter('%d-%m-%Y %H:%M:%S'))
+        self.ax.set_xlim([self.fMin, self.fMax])
+        self.scrollBar.setValue(0)
+        self.ax.set_xticklabels([])
+        self.ax.set_yticklabels([])
+        self.fig.tight_layout() 
+        self.canvas.draw_idle()
+    
+    #Reiniciar la tabla con los valores si en el filtrado no hay resultados    
+    def limpiaTabla(self):
+        self.tableWidget.clear()
+        self.tableWidget.reset()
+    
+    #Comunica al controller la finalizacion de la ejecucion
+    def quit(self):
+        self.main_controller.salir()
+    
+    
+    
                              
     def scrolling(self, event):
         if (self.contador%2)==0:
@@ -389,23 +587,6 @@ class mainWindow(QWidget):
             self.canvas.draw_idle()
         else:
             self.contador+=1
-            
-            
-    def quit(self):
-        print("Salir")
-        
-    def on_click(self):
-        print("\n")
-        for currentQTableWidgetItem in self.tableWidget.selectedItems():
-            print(currentQTableWidgetItem.row(), currentQTableWidgetItem.column(), currentQTableWidgetItem.text())
-            phStation = currentQTableWidgetItem.text()
-        fecha = self.ax.get_xlim()
-        f1 = str(num2date(fecha[0]))
-        f2 = str(num2date(fecha[1]))
-        fMin = f1[0:19]
-        fMax = f2[0:19]
-        self.main_controller.graphWindow(phStation, fMin, fMax)
-        #main.graphWindow(self, phStation, fMin ,fMax)
            
     def on_press(self, event):
         print(event.name)

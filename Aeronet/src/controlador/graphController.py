@@ -13,7 +13,6 @@ import pandas as pd
 import itertools
 #import random
 import pymysql
-from tkinter import messagebox as MessageBox
 import sys
 
 import src.modelo.globales as g
@@ -41,8 +40,14 @@ class graphController:
             self.screen.plotGrafica(self.datosAOD)
             self.screen.show()
         else:
-            MessageBox.showwarning("Empty!", "No hay datos para el fotómetro: "+str(ph)+ " "+str(station)+" entre las fechas "+str(fechaMin)+" y "+str(fechaMax))
-    
+            message = "No hay datos para el fotómetro: \n"+str(ph)+ " "+str(station)+"\nen las fechas: \nDel "+str(fechaMin)+" al "+str(fechaMax)
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Warning)
+            msg.setText(message)
+            msg.setWindowTitle("Empty!")
+            msg.setStandardButtons(QMessageBox.Ok)
+            msg.exec()
+        
     #Devuelve una lista con las medidas AOD para un fotometro, un rango de fechas y cloud level 1.0
     def getDatosAOD(self, ph, station, fechaMin, fechaMax):
         self.datosAOD = c.consultaBBDD.getAODChannelsL1(self, self.cursor, ph, station, fechaMin, fechaMax)
@@ -128,24 +133,14 @@ class graphController:
             return wVapor
         
     #Devuelve una lista con las medidad PWR para un fotómetro en un rango de fechas y cloud level 1.0
-    def getDatosPWRL1(self, ph, station, fechaMin, fechaMax):
+    def getDatosPWR(self, ph, fechaMin, fechaMax):
         try:
-            pwr = c.consultaBBDD.getPWRL1(self, self.cursor, ph, station, fechaMin, fechaMax)
+            pwr = c.consultaBBDD.getPWR(self, self.cursor, ph, fechaMin, fechaMax)
             return pwr
         except ValueError:
             pwr = []
             print(g.err1)
             return pwr 
-    
-    #Devuelve una lista con las medidad PWR para un fotómetro en un rango de fechas y cloud level 1.5
-    def getDatosPWRL15(self, ph, station, fechaMin, fechaMax):
-        try:
-            pwr = c.consultaBBDD.getPWRL15(self, self.cursor, ph, station, fechaMin, fechaMax)
-            return pwr
-        except ValueError:
-            pwr = []
-            print(g.err1)
-            return pwr  
     
     #Recupera los datos de llas medidas AOD y los manda a la vista para su representación    
     def graficaAOD(self, checkNubes):
@@ -183,8 +178,20 @@ class graphController:
                         yMinimo = yMin        
                 lowerError = aod.iloc[:, 2] - aod.iloc[:, 3]
                 upperError = aod.iloc[:, 4] - aod.iloc[:, 2]
-                color = colors[key]
-                marker = markers [key]
+                if (key>11):
+                    if (key == 17):
+                        color = colors[10]
+                        marker = markers[10]
+                    elif (key == 21):
+                        color = colors[11]
+                        marker = markers[11]
+                    else:
+                        print ("graphController: Canal no registrado, cambie fCanalColors en Globales para añadir color.")
+                        color = "black"
+                        marker = "o"
+                else:
+                    color = colors[key]
+                    marker = markers [key]
                 desvS = []
                 self.screen.plotChannelData(aodDateX, aodTempY, yMinimo, yMaximo, lowerError, upperError, desvS, banda, color, marker)
         else:
@@ -260,26 +267,15 @@ class graphController:
     
         
     #Recupera los datos de PWR y los manda a la vista para su representación, cloud level 1.0     
-    def graficaPWRL1(self):
-        pwr = self.getDatosPWRL1(self.ph, self.station, self.fechaMin, self.fechaMax)
+    def graficaPWR(self):
+        pwr = self.getDatosPWR(self.ph, self.fechaMin, self.fechaMax)
         if (any(map(len, pwr))):
                 PWR = pd.DataFrame(pwr)
                 pwrDateX = PWR.iloc[:, 0]
                 pwrY = PWR.iloc[:, 1]
                 self.screen.plotSimpleData(pwrDateX, pwrY, "PWR")
         else:
-            print ("No hay datos")
             self.screen.limpiaPlot()
-        
-    #Recupera los datos de PWR y los manda a la vista para su representación, cloud level 1.5     
-    def graficaPWRL15(self):
-        pwr = self.getDatosPWRL15(self.ph, self.station, self.fechaMin, self.fechaMax)
-        if (any(map(len, pwr))):
-                PWR = pd.DataFrame(pwr)
-                pwrDateX = PWR.iloc[:, 0]
-                pwrY = PWR.iloc[:, 1]
-                self.screen.plotSimpleData(pwrDateX, pwrY, "PWR")
-        else:
-            print ("No hay datos")
-            self.screen.limpiaPlot()
+            self.screen.mensajeNoDatos("PWR")
+            
         

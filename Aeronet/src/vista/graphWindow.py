@@ -74,7 +74,7 @@ class graphWindow(QWidget):
         self.groupButtons = QButtonGroup()
         self.dataTypeVL.setObjectName("Data Type")
         self.AOD = QPushButton("AOD")
-        self.AOD.setChecked(True)
+        #self.AOD.setChecked(True)
         self.AOD.clicked.connect(self.AOD_clicked)
         self.dataTypeVL.addWidget(self.AOD)
         self.groupButtons.addButton(self.AOD)
@@ -94,10 +94,6 @@ class graphWindow(QWidget):
         self.PWR.clicked.connect(self.PWRClicked)
         self.dataTypeVL.addWidget(self.PWR)
         self.groupButtons.addButton(self.PWR)
-        '''self.Int_V = QPushButton("Int V")
-        self.dataTypeVL.addWidget(self.Int_V)
-        self.BLK = QPushButton("BLK")
-        self.dataTypeVL.addWidget(self.BLK)'''
         self.dataTypeGB.setLayout(self.dataTypeVL)
         self.botonesLayout.addWidget(self.dataTypeGB)
         
@@ -249,11 +245,8 @@ class graphWindow(QWidget):
     #Acción boton temperatura    
     def PWRClicked(self):
         if (self.check!="PWR"):
-            self.fig.suptitle('PWR '+self.checkNubes, fontsize=20)
-            if (self.checkNubes=="1.0"): 
-                self.graphController.graficaPWRL1()
-            elif (self.checkNubes=="1.5"):
-                self.graphController.graficaPWRL15() 
+            self.fig.suptitle('PWR ', fontsize=20) 
+            self.graphController.graficaPWR() 
             self.check="PWR"
     
     #Acción de botón Level 1.0
@@ -261,12 +254,16 @@ class graphWindow(QWidget):
         if (self.checkNubes!="1.0"):
             self.checkNubes="1.0"
             self.cambiarFiltro()
-            
+        if (self.check=="PWR"):
+            self.mensajeNoFiltroPWR() 
+               
     #Acción de botón Level 1.5
     def filtroNubesL15(self):
         if (self.checkNubes!="1.5"):
             self.checkNubes="1.5"
             self.cambiarFiltro()
+        if (self.check=="PWR"):
+            self.mensajeNoFiltroPWR()  
             
     #Llamada a obtener datos si hay que cambiar el filtro de nubes
     def cambiarFiltro(self):
@@ -275,10 +272,7 @@ class graphWindow(QWidget):
             self.AOD_clicked()
         elif (self.check=="Temperatura"):
             self.check="Temp"
-            self.temperaturaClicked()
-        elif (self.check=="PWR"):
-            self.check="pwr"
-            self.PWRClicked()   
+            self.temperaturaClicked()   
         elif (self.check=="WaterVapor"):
             self.check="WV"
             self.WaterVapor_clicked()
@@ -301,7 +295,7 @@ class graphWindow(QWidget):
             fmt = "go-"
         self.ax.set_ylim([yMin-1, yMax+1])
         self.ax.plot(dataX, dataY, fmt, label = tipo)
-        self.ax.legend()
+        self.ax.legend(loc = 0)
         self.canvas.draw_idle()
     
     #Plotea los datos referentes a WExp, formado por alpha 440-870 y alpha 380-500
@@ -324,12 +318,12 @@ class graphWindow(QWidget):
         self.ax.plot(dataX, dataY440, "ro-", label = "alpha 440-870")
         self.ax.plot(dataX, dataY380, "bD-", label = "alpha 380-500")
         self.ax.set_ylim([yMin-1, yMax+1])
-        self.ax.legend()
+        self.ax.legend(loc = 0)
         self.canvas.draw_idle()
     
     #Plotea los datos con canales (AOD y PWR)
     def plotChannelData(self, dataX, dataY, yMin, yMax, lowerE, upperE, desvS, nChannel, color, marker):
-        self.ax.errorbar(dataX, dataY, yerr=[lowerE, upperE], color = color, marker = marker, label = "Banda: "+str(nChannel))
+        self.ax.errorbar(dataX, dataY, yerr=[lowerE, upperE], color = color, marker = marker, label = str(nChannel))
         self.ax.set_ylim([yMin-1, yMax+1])
         self.ax.legend(loc = 0, fontsize = 12)
     
@@ -367,6 +361,21 @@ class graphWindow(QWidget):
             self.ax.xaxis.set_major_formatter(DateFormatter('%d-%b-%Y'))
         self.canvas.draw_idle()    
     
+    #Mensaje no hay datos de algun tipo
+    def mensajeNoDatos(self, message):
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Warning)
+        msg.setText("No hay medidas de "+message+" para este fotometro en estas fechas.")
+        msg.setStandardButtons(QMessageBox.Ok)
+        msg.exec()
+    
+    #Mensaje filtro a PWR    
+    def mensajeNoFiltroPWR(self):
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Warning)
+        msg.setText("No se aplican los filtros Cloud level a las medidas PWR.")
+        msg.setStandardButtons(QMessageBox.Ok)
+        msg.exec()
             
     #Graficar datos con errorbar y por canales EN PRUEBAS
     def plotDatosError(self, x, y, yErrorLower, yErrorUpper, format1, format2, canal):
