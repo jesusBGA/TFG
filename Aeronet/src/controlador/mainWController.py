@@ -171,8 +171,7 @@ class mainWController:
             fMin = self.getMinFechaCloudL(str(row[0]), row[2], row[3], cloudLevel)
             fMax = self.getMaxFechaCloudL(str(row[0]), row[2], row[3], cloudLevel)
             if ((fMin != "") & (fMax != "")):
-                #fMin = datetime.strptime(fMin, '%Y-%m-%d %H:%M:%S')
-                #fMax = datetime.strptime(fMax, '%Y-%m-%d %H:%M:%S')
+                #Comprobaciones para obtener Fmin y Fmax, para los limites del eje x de la grafica 
                 if (self.fechaMin == ""):
                     self.fechaMin = fMin
                 if (self.fechaMin > fMin):
@@ -185,8 +184,6 @@ class mainWController:
                 if aux not in indices:
                     indices.append(aux)
                     o = objecto.phStationObject(aux, row[4], row[5])
-                    #fechas.append(row[2])
-                    #fechas.append(row[3])
                     fechas.append(fMin)
                     fechas.append(fMax)
                     o.setDateOfUse(fechas)
@@ -195,8 +192,6 @@ class mainWController:
                 else:
                     o=datosCompletos[contador-1]
                     datosCompletos.remove(o)
-                    #fechas.append(row[2])
-                    #fechas.append(row[3])
                     fechas.append(fMin)
                     fechas.append(fMax)
                     o.setDateOfUse(fechas)
@@ -204,14 +199,10 @@ class mainWController:
         return datosCompletos
     
     #Invoca la ventana graphWindow, la cual muestra datos para un fotometro concreto
-    def graphWindow(self, ph, fechaMin, fechaMax):
-        fot = ph.split()
+    def graphWindow(self, phStation, fechaMin, fechaMax):
+        fot = phStation.split()
         nFotometro = fot[0]
         station = fot[1]
-        '''datos= consultaBBDD.getAODChannels(self, self.cursor, ph)
-        screen2 = vg.graphWindow(datos)
-        screen2.plotGrafica(datos)
-        screen2.show()'''
         self.graphController = graphController()
         self.graphController.start(nFotometro, station, fechaMin, fechaMax)
     
@@ -225,17 +216,6 @@ class mainWController:
     
     #Terminar la ejecucion    
     def salir(self):
+        self.db.close()
         sys.exit(1)
         
-    
-    #Recupera los datos de los fotometros con el filtro solo sobre eprom_type/subtype
-    '''def filtroSoloEprom(self, tipo):
-        filtro = self.tipoFiltro(tipo, "", "")
-        datosDistinct = self.getDatosPhStation(filtro)
-        self.screen.limpiaPlot()
-        if (any(map(len, datosDistinct))):
-            datosCompletos = self.getDatosCompletos(filtro)
-            fechaMin = self.getFechaMin(filtro)
-            fechaMax = self.getFechaMax(filtro)
-            self.screen.plotUsoPh(datosDistinct, datosCompletos, fechaMin, fechaMax)
-            self.screen.setDatosTabla(datosDistinct)'''

@@ -321,9 +321,11 @@ class graphWindow(QWidget):
         self.ax.legend(loc = 0)
         self.canvas.draw_idle()
     
-    #Plotea los datos con canales (AOD y PWR)
+    #Plotea los datos con canales (AOD)
     def plotChannelData(self, dataX, dataY, yMin, yMax, lowerE, upperE, desvS, nChannel, color, marker):
         self.ax.errorbar(dataX, dataY, yerr=[lowerE, upperE], color = color, marker = marker, label = str(nChannel))
+        if (self.checkNubes=="1.5"):
+            self.ax.bar(dataX, desvS, bottom = dataY-(desvS/2), width=desvS*0.2, color='white', edgecolor = color, align='center')
         self.ax.set_ylim([yMin-1, yMax+1])
         self.ax.legend(loc = 0, fontsize = 12)
     
@@ -376,19 +378,4 @@ class graphWindow(QWidget):
         msg.setText("No se aplican los filtros Cloud level a las medidas PWR.")
         msg.setStandardButtons(QMessageBox.Ok)
         msg.exec()
-            
-    #Graficar datos con errorbar y por canales EN PRUEBAS
-    def plotDatosError(self, x, y, yErrorLower, yErrorUpper, format1, format2, canal):
-        self.ax.plot(x, y, format1, label= "Canal "+str(canal))
-        self.ax.errorbar(x, y, yerr=[[yErrorLower], [yErrorUpper]], fmt=format2)
-        
-    #Fechas   
-    def probando(self, event):
-        fecha = self.ax.get_xlim()
-        f1= str(num2date(fecha[0]))
-        f2= str(num2date(fecha[1]))
-        '''print(f1[0:19])
-        print(f2[0:19]) '''
-        self.formatoFecha()
-        self.canvas.draw()
         

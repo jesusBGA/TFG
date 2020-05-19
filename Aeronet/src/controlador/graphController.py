@@ -4,22 +4,14 @@ Created on 28 ene. 2020
 @author: Jesus Brezmes Gil-Albarellos
 '''
 from PyQt5.QtWidgets import*
-from PyQt5.uic import loadUi
-
-from matplotlib.backends.backend_qt5agg import (NavigationToolbar2QT as NavigationToolbar)
-
-import numpy as np
-import pandas as pd
 import itertools
-#import random
-import pymysql
-import sys
 
-import src.modelo.globales as g
+import pymysql
+import numpy
+import pandas as pd
 import src.modelo.consultasBBDD as c
-import src.vista.mainWindow as v
+import src.modelo.globales as g
 import src.vista.graphWindow as vg
-import src.modelo.consultasBBDD as o
 
 class graphController:
     
@@ -34,10 +26,10 @@ class graphController:
         self.station = station
         self.fechaMin = fechaMin
         self.fechaMax = fechaMax
-        self.getDatosAOD(ph, station, fechaMin, fechaMax)
+        datosAOD = self.getDatosAODL1(ph, station, fechaMin, fechaMax)
         self.screen = vg.graphWindow(ph, station, fechaMin, fechaMax, self.controller)
-        if (any(map(len, self.datosAOD))):
-            self.screen.plotGrafica(self.datosAOD)
+        if (any(map(len, datosAOD))):
+            self.screen.plotGrafica(datosAOD)
             self.screen.show()
         else:
             message = "No hay datos para el fotómetro: \n"+str(ph)+ " "+str(station)+"\nen las fechas: \nDel "+str(fechaMin)+" al "+str(fechaMax)
@@ -47,10 +39,6 @@ class graphController:
             msg.setWindowTitle("Empty!")
             msg.setStandardButtons(QMessageBox.Ok)
             msg.exec()
-        
-    #Devuelve una lista con las medidas AOD para un fotometro, un rango de fechas y cloud level 1.0
-    def getDatosAOD(self, ph, station, fechaMin, fechaMax):
-        self.datosAOD = c.consultaBBDD.getAODChannelsL1(self, self.cursor, ph, station, fechaMin, fechaMax)
         
     #Devuelve una lista con las medidas AOD para un fotometro, un rango de fechas y cloud level 1.0
     def getDatosAODL1(self, ph, station, fechaMin, fechaMax):
@@ -145,7 +133,10 @@ class graphController:
     #Recupera los datos de llas medidas AOD y los manda a la vista para su representación    
     def graficaAOD(self, checkNubes):
         key_func = lambda x: x[0]
-        colors = g.fCanalColors
+        desvS = []
+        #Variable auxiliar para comprobar si se repite la banda 1020
+        color1020 = 0
+        colores = g.COLOR_WLN
         markers = g.fCanalMarkers
         self.screen.limpiaPlot()
         auxiliar = 0
@@ -160,10 +151,20 @@ class graphController:
                 aod = pd.DataFrame(AOD)
                 aodDateX = aod.iloc[:, 1]
                 aodTempY = aod.iloc[:, 2]
+                aodMinY = aod.iloc[:, 3]
+                aodMaxY = aod.iloc[:, 4]
+                #Para obtener faltante de la media, tenemos la media el min y el max, despejamos el valor medio (Para la desviacion estandar)
+                aodMedY = (3*aodTempY)-(aodMinY+aodMaxY)
+                #Calcular la desviación estandar
+                medidas = numpy.array([aodMinY, aodMaxY, aodMedY])
+                desvS = numpy.std(medidas, axis=0)
+                #Wlc: banda para la leyenda
                 aodBanda = aod.iloc[:, 5]
-                #Wlc: ancho de banda para la leyenda
+                aodWLN = aod.iloc[:, 6]
                 banda = aodBanda[0]*1000
                 banda = round(banda, 2)
+                WLN = aodWLN[0]*1000
+                WLN = str(int(WLN))
                 #Comprobaciones para ver el mayor y menor de los valores y estimar el maximo y el minimo en el eje Y de la grafica
                 yMax = aodTempY.values.max()
                 yMin = aodTempY.values.min()
@@ -175,25 +176,31 @@ class graphController:
                     if (yMax>=yMaximo):
                         yMaximo = yMax
                     if (yMin<=yMinimo):
-                        yMinimo = yMin        
-                lowerError = aod.iloc[:, 2] - aod.iloc[:, 3]
-                upperError = aod.iloc[:, 4] - aod.iloc[:, 2]
+                        yMinimo = yMin
+                #Errores maximo y minimo de cada conjunto de valores para el canal        
+                lowerError = aodTempY - aodMinY
+                upperError = aodMaxY - aodTempY
                 if (key>11):
                     if (key == 17):
-                        color = colors[10]
                         marker = markers[10]
                     elif (key == 21):
-                        color = colors[11]
                         marker = markers[11]
                     else:
-                        print ("graphController: Canal no registrado, cambie fCanalColors en Globales para añadir color.")
-                        color = "black"
                         marker = "o"
                 else:
-                    color = colors[key]
                     marker = markers [key]
-                desvS = []
-                self.screen.plotChannelData(aodDateX, aodTempY, yMinimo, yMaximo, lowerError, upperError, desvS, banda, color, marker)
+                    
+                if (colores[WLN]):    
+                    color = colores[WLN]
+                    if (WLN=="1020"):
+                        if (color1020==1):
+                            color = colores['1020i']
+                        else:
+                            color1020 = 1
+                else: 
+                    print (WLN)
+                self.screen.plotChannelData(aodDateX, aodTempY, yMinimo, yMaximo, lowerError, upperError, desvS, int(WLN), color, marker)
+        #Sino hay datos
         else:
             self.screen.limpiaPlot()        
     
@@ -277,5 +284,4 @@ class graphController:
         else:
             self.screen.limpiaPlot()
             self.screen.mensajeNoDatos("PWR")
-            
-        
+                

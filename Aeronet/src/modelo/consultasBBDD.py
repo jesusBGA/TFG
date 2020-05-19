@@ -259,11 +259,3 @@ class consultaBBDD():
         except:
             print(sys.exc_info())
         return data    
-            
-    #NO UTILIZADO/ Prueba
-    def getAODChannels(self, cursor, ph):
-        try:
-            cursor.execute("select C.channel, C.date, avg(C.aod) as aod FROM caelis.cml_aod_channel C JOIN caelis.cml_aod A ON (A.ph=C.ph && A.date=C.date) WHERE (C.ph=10 && C.aod is not null && C.date between '2019-04-25 00:00:01' and '2019-05-01 00:00:01') GROUP BY C.channel, C.date;")
-            return cursor.fetchall()
-        except:
-            print(sys.exc_info())

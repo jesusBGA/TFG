@@ -54,4 +54,22 @@ station = "station like '%s'"
 
 #Estilo de los canales para su ploteo
 fCanalColors = ("", "red", "blue", "cyan", "magenta", "green", "yellow", "orange", "purple", "brown", "black", "turquoise")
-fCanalMarkers = ("", "o", "x", "v", "<", ">", "s", "p", "*", "D", "h", "+")
+fCanalMarkers = ("", "o", "x", "v", "<", ">", "s", "p", "*", "D", "h", "d")
+
+COLOR_WLN= { '1640':"#008000", 
+            '1240':"#008000",
+            '1020':"#ff0000",
+            '1020i':"#0000ff",
+            '935' : "blue",
+            '870' : "#9370db",
+            '675':"#556b2f",
+            '667':"#606a31",
+            '551':"#ff6347",
+            '532':"#8b4513",
+            '500':"#2e6b57",
+            '490':"#2e6b57",
+            '443':"#a54141",
+            '440':"#a54141",
+            '412':"#228b22",
+            '380':"#228b22",
+            '340':"#b22222"}

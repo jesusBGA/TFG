@@ -48,7 +48,7 @@ class mainWindow(QWidget):
         self.tableWidget.setFixedWidth(140)
         self.tableWidget.setFixedHeight(450)
         self.tableWidget.setColumnWidth(0, 140)
-        self.tableWidget.doubleClicked.connect(self.on_click)
+        self.tableWidget.doubleClicked.connect(self.phClicked)
         self.tableWidget.setFont(QFont('Times New Roman', 10, QFont.Bold))
         self.tableWidget.horizontalHeader().hide()
         self.tableWidget.verticalHeader().hide()
@@ -582,7 +582,7 @@ class mainWindow(QWidget):
         msg.exec()
     
     #Acción de pulsar sobre un item de la tabla de fotometros    
-    def on_click(self):
+    def phClicked(self):
         print("\n")
         for currentQTableWidgetItem in self.tableWidget.selectedItems():
             phStation = currentQTableWidgetItem.text()
