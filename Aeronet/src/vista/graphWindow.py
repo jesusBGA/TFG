@@ -6,14 +6,11 @@ Created on 29 ene. 2020
 
 from PyQt5.QtWidgets import *
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar, FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 plt.style.use('classic')
-from PyQt5 import QtCore
-from datetime import datetime, timedelta
-from matplotlib.dates import date2num, num2date
+from datetime import datetime
+from matplotlib.dates import num2date
 from matplotlib.dates import DateFormatter
-import pandas as pd
 from pandas.plotting import register_matplotlib_converters
 
 #Ventana para graficar los datos de cada fotometro individualmente
@@ -148,49 +145,6 @@ class graphWindow(QWidget):
         self.horizontalLayout.addLayout(self.botonesLayout)
         self.mainLayout.addLayout(self.horizontalLayout)
         self.setLayout(self.mainLayout)
-        
-    #Plotea los datos del fotometro    
-    def plotGrafica(self, datos):
-        switcher = {
-            1: "ro",
-            2: "bx",
-            3: "c^",
-            4: "ms",
-            5: "yp",
-            6: "o<",
-            7: "lime>",
-            8: "siennaD",
-            9: "*",
-            10: ",",
-            11: "November",
-            12: "December"
-        }
-        
-        for row in datos:
-            lowerError = row[2]-row[3]
-            upperError = row[4]-row[2]
-            '''lowerError = row[3]
-            upperError = row[4]'''
-            if row[0]==1:
-                self.ax.bar(row[1], 0.025, bottom = row[2]-0.0125, width=0.05, color='white', edgecolor = 'red', align='center')
-                self.ax.errorbar(row[1], row[2], yerr = [[lowerError],[upperError]], marker= "o", color= "r")
-            elif row[0]==2:
-                self.ax.plot(row[1], row[2],"bx")
-            elif row[0]==3:
-                self.ax.plot(row[1], row[2],"c^")
-            elif row[0]==4:
-                self.ax.plot(row[1], row[2],"ms")
-            elif row[0]==5:
-                self.ax.plot(row[1], row[2],"yp")
-            elif row[0]==6:
-                self.ax.plot(row[1], row[2],"gD")
-            elif row[0]==7:
-                self.ax.plot(row[1], row[2],"C7*")
-            elif row[0]==8:
-                self.ax.plot(row[1], row[2],"r<")    
-            #self.ax.plot(row[1], row[2], switcher.get(row[0], "k"))
-        self.ax.legend()
-        #self.canvas.draw()
       
     #Reiniciar y dar formato a los ejes de la gráfica    
     def limpiaPlot(self):
@@ -322,10 +276,10 @@ class graphWindow(QWidget):
         self.canvas.draw_idle()
     
     #Plotea los datos con canales (AOD)
-    def plotChannelData(self, dataX, dataY, yMin, yMax, lowerE, upperE, desvS, nChannel, color, marker):
-        self.ax.errorbar(dataX, dataY, yerr=[lowerE, upperE], color = color, marker = marker, label = str(nChannel))
+    def plotChannelData(self, dataX, dataY, yMin, yMax, lowerE, upperE, desvS, banda, color, marker):
+        self.ax.errorbar(dataX, dataY, yerr=[lowerE, upperE], color = color, marker = marker, label = str(banda))
         if (self.checkNubes=="1.5"):
-            self.ax.bar(dataX, desvS, bottom = dataY-(desvS/2), width=desvS*0.2, color='white', edgecolor = color, align='center')
+            self.ax.bar(dataX, desvS, bottom = dataY-(desvS/2), width=desvS*0.4, color='white', edgecolor = color, align='center')
         self.ax.set_ylim([yMin-1, yMax+1])
         self.ax.legend(loc = 0, fontsize = 12)
     

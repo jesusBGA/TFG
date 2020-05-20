@@ -13,7 +13,6 @@ import src.vista.mainWindow as v
 import src.modelo.consultasBBDD as c
 from src.controlador.graphController import graphController
 import src.modelo.phStationObject as objecto
-from datetime import datetime
 
 class mainWController:
     
@@ -198,7 +197,7 @@ class mainWController:
                     datosCompletos.append(o)
         return datosCompletos
     
-    #Invoca la ventana graphWindow, la cual muestra datos para un fotometro concreto
+    #Invoca el graphController, el cual se encarga de gestionar la respectiva graphWindow
     def graphWindow(self, phStation, fechaMin, fechaMax):
         fot = phStation.split()
         nFotometro = fot[0]

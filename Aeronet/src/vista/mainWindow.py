@@ -4,7 +4,6 @@ Created on 29 ene. 2020
 @author: Jesus Brezmes Gil-Albarellos
 '''
 from PyQt5 import QtCore, QtWidgets
-#from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar, FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 from PyQt5.QtWidgets import *
@@ -35,12 +34,6 @@ class mainWindow(QWidget):
         self.setWindowTitle("Aeronet")
         self.setFixedSize(1400,800)
         
-        #Tabla para mostrar las fechas
-        '''self.tableFWidget = QTableWidget()
-        self.tableFWidget.setRowCount(1)
-        self.tableFWidget.setColumnCount(10)
-        self.tableFWidget.setMaximumHeight(20)'''
-        
         #Tabla para mostrar los datos
         self.tablaL = QVBoxLayout()
         self.tableWidget = QTableWidget()
@@ -70,10 +63,6 @@ class mainWindow(QWidget):
         self.horizontalLayout = QVBoxLayout()
         
         #Scrollbar para navegar interactivamente por la grafica
-        '''self.pagesLayout = QVBoxLayout()
-        v_widget = QWidget()
-        v_widget.setLayout(self.pagesLayout)
-        v_widget.setFixedWidth(50)'''
         self.contador=2
         self.scrollLayout = QVBoxLayout()
         s_widget = QWidget()
@@ -86,16 +75,6 @@ class mainWindow(QWidget):
         self.scrollBar.sliderPressed.connect(self.sliderValue)
         self.scrollBar.valueChanged.connect(self.sliderValue)
         self.scrollLayout.addWidget(self.scrollBar)
-        '''self.previousButton = QPushButton("Previous 10")
-        self.previousButton.clicked.connect(self.previousPage)
-        self.nextButton = QPushButton("Next 10")
-        self.nextButton.clicked.connect(self.nextPage)
-        self.resetZoomButton = QPushButton("Reset zoom")
-        self.resetZoomButton.clicked.connect(self.resetZoom)'''
-        #self.pagesLayout.addWidget(s_widget)
-        '''self.pagesLayout.addWidget(self.previousButton)
-        self.pagesLayout.addWidget(self.nextButton)
-        self.pagesLayout.addWidget(self.resetZoomButton)'''
         
         #Grafica y navigation toolbar
         self.toolbarLayout = QHBoxLayout()
@@ -208,11 +187,6 @@ class mainWindow(QWidget):
         self.horizontalLayout.addLayout(self.toolbarLayout)
         self.horizontalLayout.addWidget(f_widget)
         self.horizontalLayout.setContentsMargins(10, 10, 10, 10)
-        
-        '''self.widget = QWidget()
-        self.scroll = QScrollArea(self.widget)
-        self.scroll.setWidget(self.canvas)
-        self.canvas.mpl_connect("scroll_event", self.scrolling)'''
         
         #Evento que detecta la modificación de la gráfica
         self.canvas.mpl_connect("draw_event", self.fechaEvent)
@@ -435,7 +409,8 @@ class mainWindow(QWidget):
         elif (nRows==15):
             altura = self.alturaTabla / 15
         else:
-            altura = self.alturaTabla / nRows
+            if (nRows>=1):
+                altura = self.alturaTabla / nRows
             
         if (nRows>=1):
             self.tableWidget.clear()
@@ -592,7 +567,6 @@ class mainWindow(QWidget):
         fMin = f1[0:19]
         fMax = f2[0:19]
         self.main_controller.graphWindow(phStation, fMin, fMax)
-        #main.graphWindow(self, phStation, fMin ,fMax)
             
     #Reiniciar y dar formato a los ejes de la gráfica    
     def limpiaPlot(self):
@@ -618,72 +592,5 @@ class mainWindow(QWidget):
     #Comunica al controller la finalizacion de la ejecucion
     def quit(self):
         self.main_controller.salir()
-    
-    
-    
-                             
-    def scrolling(self, event):
-        if (self.contador%2)==0:
-            self.contador+=1
-            if event.button=="down":
-                if self.scrolled>2:
-                    self.scrolled-=2
-            else:
-                if self.scrolled<(self.scroll-2):
-                    self.scrolled+=2
-                else:
-                    self.scrolled= self.scroll
-            self.ax.set_ylim([self.scrolled-14.5, self.scrolled+.5])
-            self.canvas.draw_idle()
-        else:
-            self.contador+=1
-           
-    def on_press(self, event):
-        print(event.name)
-        lims=self.ax.get_ylim()
-        min = math.floor(lims[0])
-        max = math.ceil(lims[1]) 
-        self.scrolled=max
-        
-    
-    #Accion de avanzar fotometros en la grafica
-    def nextPage(self):
-        lims=self.ax.get_ylim()
-        min = lims[0]
-        max = lims[1]
-        if self.previousButton.isEnabled()==False:
-            self.previousButton.setEnabled(True)
-        if self.scrolled>10:
-            self.scrolled-=10
-            self.ax.set_ylim([self.scrolled-9.5, self.scrolled+.5])
-            self.canvas.draw_idle()
-            if self.scrolled<=10:
-                self.nextButton.setEnabled(False)
-                
-    #Accion de retroceder fotometros en la grafica
-    def previousPage(self):
-        lims=self.ax.get_ylim()
-        min = lims[0]
-        max = lims[1]  
-        if self.nextButton.isEnabled()==False:
-            self.nextButton.setEnabled(True)
-        if self.scrolled<(self.scroll-9):
-            self.scrolled+=10
-            if self.scroll<self.scrolled+10:
-                self.previousButton.setEnabled(False)
-        else:
-            self.scrolled= self.scroll
-                
-        self.ax.set_ylim([self.scrolled-9.5, self.scrolled+.5])
-        self.canvas.draw_idle()
-        
-    #Accion de reiniciar el zoom de la gráfica
-    def resetZoom(self):
-        self.ax.set_xlim([self.fMin,self.fMax])
-        if (self.scrolled<=15):
-            self.ax.set_ylim([0, 15])
-        else:
-            self.ax.set_ylim([self.scrolled-14.5, self.scrolled+.5])
-        self.canvas.draw_idle()
     
     

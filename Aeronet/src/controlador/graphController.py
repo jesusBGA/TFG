@@ -29,7 +29,7 @@ class graphController:
         datosAOD = self.getDatosAODL1(ph, station, fechaMin, fechaMax)
         self.screen = vg.graphWindow(ph, station, fechaMin, fechaMax, self.controller)
         if (any(map(len, datosAOD))):
-            self.screen.plotGrafica(datosAOD)
+            self.graficaAOD("1.0")
             self.screen.show()
         else:
             message = "No hay datos para el fotómetro: \n"+str(ph)+ " "+str(station)+"\nen las fechas: \nDel "+str(fechaMin)+" al "+str(fechaMax)
@@ -130,7 +130,7 @@ class graphController:
             print(g.err1)
             return pwr 
     
-    #Recupera los datos de llas medidas AOD y los manda a la vista para su representación    
+    #Recupera los datos de las medidas AOD y los manda a la vista para su representación    
     def graficaAOD(self, checkNubes):
         key_func = lambda x: x[0]
         desvS = []
