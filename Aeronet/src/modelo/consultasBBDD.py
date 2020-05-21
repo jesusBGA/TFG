@@ -4,9 +4,11 @@ Created on 29 ene. 2020
 @author: Jesus Brezmes Gil-Albarellos
 '''
 
-import src.modelo.globales as g
 import sys
 from datetime import datetime, timedelta
+
+#Modificaciones: quitar src
+import src.modelo.globales as g
 
 #Clase para realizar las diferentes consultas a la BBDD
 class consultaBBDD():  

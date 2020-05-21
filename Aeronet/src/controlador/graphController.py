@@ -9,6 +9,8 @@ import itertools
 import pymysql
 import numpy
 import pandas as pd
+
+#Modificaciones: quitar src
 import src.modelo.consultasBBDD as c
 import src.modelo.globales as g
 import src.vista.graphWindow as vg

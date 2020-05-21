@@ -19,6 +19,7 @@ plt.rcParams['toolbar'] = 'toolmanager'
 import matplotlib.dates as mdates
 from matplotlib.collections import PolyCollection
 
+#Modificaciones: quitar src
 from src.vista.NavigationToolbar import NavigationToolbar
 
 #Ventana principal de la aplicación

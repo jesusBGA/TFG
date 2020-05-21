@@ -1,0 +1,5 @@
+#!/bin/bash
+#Script conexiones
+
+echo -e 'Iniciando Aeronet...\nAutor: Jesús Brezmes Gil-Albarellos'
+python3 "ruta_aplicacion"/TFG/Aeronet/src/main.py

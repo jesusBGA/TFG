@@ -4,9 +4,11 @@ Created on 28 ene. 2020
 @author: Jesus Brezmes Gil-Albarellos
 '''
 
-from src.controlador.mainWController import mainWController
 import sys
 import pymysql
+
+#Modificaciones: quitar src
+from src.controlador.mainWController import mainWController
 import src.modelo.globales as g
     
 class main:

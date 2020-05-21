@@ -8,6 +8,7 @@ import sys
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWidgets import QMessageBox
 
+#Modificaciones: quitar src
 import src.modelo.globales as g
 import src.vista.mainWindow as v
 import src.modelo.consultasBBDD as c
