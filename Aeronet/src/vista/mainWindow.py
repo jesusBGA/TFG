@@ -429,6 +429,8 @@ class mainWindow(QWidget):
                 self.tableWidget.setRowHeight(contador, altura)
                 contador+=1
                 value+=1
+        else:
+            self.limpiaTabla() 
     
     #Tras detectar un evento de dibujo sobre la grafica, realiza la llamada para actualizar la tabla de fotometros
     def fechaEvent(self, event):
