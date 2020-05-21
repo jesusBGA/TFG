@@ -430,7 +430,8 @@ class mainWindow(QWidget):
                 contador+=1
                 value+=1
         else:
-            self.limpiaTabla() 
+            self.limpiaTabla()
+            self.mensajeNoDatosZoom() 
     
     #Tras detectar un evento de dibujo sobre la grafica, realiza la llamada para actualizar la tabla de fotometros
     def fechaEvent(self, event):
@@ -590,6 +591,14 @@ class mainWindow(QWidget):
     def reiniciaCloudLevel(self):
         self.n1.setChecked(True)
         self.auxNubes = "1.0"
+        
+    #Mensaje no hay datos para el filtro
+    def mensajeNoDatosZoom(self):
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Warning)
+        msg.setText("No hay datos dispoibles para este zoom.")
+        msg.setStandardButtons(QMessageBox.Ok)
+        msg.exec()
     
     #Comunica al controller la finalizacion de la ejecucion
     def quit(self):

@@ -133,6 +133,7 @@ class mainWController:
                 self.mensajeNoDatosCloudL15(tipo, ph, station)    
         else:
             self.screen.limpiaTabla()
+            self.mensajeNoDatos()
     
     #Método para tranformar la lista de fotometros consultada para su tratamiento
     def toPhStationObject(self, data):
@@ -210,6 +211,14 @@ class mainWController:
         msg = QMessageBox()
         msg.setIcon(QMessageBox.Warning)
         msg.setText("No hay datos AOD(1.5) para la búsqueda:\n"+ph+" "+station+"\ndel tipo:\n"+tipo)
+        msg.setStandardButtons(QMessageBox.Ok)
+        msg.exec()
+        
+    #Mensaje no hay datos   
+    def mensajeNoDatos(self):
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Warning)
+        msg.setText("No hay datos disponibles que concuerden con este filtro")
         msg.setStandardButtons(QMessageBox.Ok)
         msg.exec()
     
