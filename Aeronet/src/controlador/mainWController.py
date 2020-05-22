@@ -134,7 +134,7 @@ class mainWController:
                 self.mensajeNoDatosCloudL15(tipo, ph, station)    
         else:
             self.screen.limpiaTabla()
-            self.mensajeNoDatos()
+            #self.mensajeNoDatos()
     
     #Método para tranformar la lista de fotometros consultada para su tratamiento
     def toPhStationObject(self, data):
