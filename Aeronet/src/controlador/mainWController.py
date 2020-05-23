@@ -131,7 +131,7 @@ class mainWController:
             else:
                 self.screen.limpiaTabla()
                 self.screen.reiniciaCloudLevel()
-                self.mensajeNoDatosCloudL15(tipo, ph, station)    
+                #self.mensajeNoDatosCloudL15(tipo, ph, station)    
         else:
             self.screen.limpiaTabla()
             #self.mensajeNoDatos()

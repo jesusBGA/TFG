@@ -483,14 +483,14 @@ class mainWindow(QWidget):
         
     #Acción de seleccionar un botónn de eprom/subeprom type        
     def nubesClicked(self, button):
-        clicked = button.text()
-        if (clicked == "AOD(1.0)"):
-            clicked = "1.0"
+        self.clicked = button.text()
+        if (self.clicked == "AOD(1.0)"):
+            self.clicked = "1.0"
         else:
-            clicked = "1.5"
-        if (self.auxNubes != clicked):
+            self.clicked = "1.5"
+        if (self.auxNubes != self.clicked):
             if (self.group2.checkedButton()):
-                cloudLevel = clicked
+                cloudLevel = self.clicked
                 if (cloudLevel == "1.0"):
                         cloudLevel = ""
             message = ""
@@ -504,7 +504,7 @@ class mainWindow(QWidget):
                 else:
                     filtroEprom = ""    
                 self.main_controller.filtroEpromPhSite(filtroEprom, station, ph, cloudLevel)
-        self.auxNubes = clicked
+        self.auxNubes = self.clicked
     
     #Acción de pulsar enter en los campos de entrada device y site
     def enterDevSite(self):
@@ -591,7 +591,7 @@ class mainWindow(QWidget):
     #Vuelve a poner a AOD(1.0) como opción, consecuencia de no haber encontrado datos AOD(1.5)    
     def reiniciaCloudLevel(self):
         self.n1.setChecked(True)
-        self.auxNubes = "1.0"
+        self.clicked = "1.0"
         
     #Mensaje no hay datos para el filtro
     def mensajeNoDatos(self):
