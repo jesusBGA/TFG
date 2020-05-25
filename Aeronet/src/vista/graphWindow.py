@@ -26,6 +26,8 @@ class graphWindow(QWidget):
         #Variable botón check
         self.check="AOD"
         self.checkNubes="1.0"
+        self.fechaMinAux = ""
+        self.fechaMaxAux = ""
         
         #Título de la ventana
         self.setWindowTitle(str(ph)+" "+str(station))
@@ -207,6 +209,9 @@ class graphWindow(QWidget):
     def filtroNubesL1(self):
         if (self.checkNubes!="1.0"):
             self.checkNubes="1.0"
+            
+            self.fechaAuxiliar()
+            
             self.cambiarFiltro()
         if (self.check=="PWR"):
             self.mensajeNoFiltroPWR() 
@@ -233,6 +238,14 @@ class graphWindow(QWidget):
         elif (self.check=="WExp"):
             self.check="WE"
             self.Wexp_clicked()
+    
+    #Metodo para comprobar el zoom ante un cambio cloud level
+    def fechaAuxiliar(self):
+        self.fechaMinAux = self.getXMin()
+        self.fechaMaxAux = self.getXMax()
+        if ((self.fMin==self.fechaMinAux) & (self.fMax==self.fechaMaxAux)):
+            self.fechaMinAux = self.fMin
+            self.fechaMaxAux = self.fMax
             
     #Plotea datos sin canales (temperatura y vapor de agua)
     def plotSimpleData(self, dataX, dataY, tipo):
@@ -278,8 +291,9 @@ class graphWindow(QWidget):
     #Plotea los datos con canales (AOD)
     def plotChannelData(self, dataX, dataY, yMin, yMax, lowerE, upperE, desvS, banda, color, marker):
         self.ax.errorbar(dataX, dataY, yerr=[lowerE, upperE], color = color, marker = marker, label = str(banda))
-        if (self.checkNubes=="1.5"):
-            self.ax.bar(dataX, desvS, bottom = dataY-(desvS/2), width=desvS*0.4, color='white', edgecolor = color, align='center')
+        #Por si en un futuro se quiere que si que aparrezca el boxplot de la desviacion estandar.
+        '''if (self.checkNubes=="1.5"):
+            self.ax.bar(dataX, desvS, bottom = dataY-(desvS/2), width=desvS*0.4, color='white', edgecolor = color, align='center')'''
         self.ax.set_ylim([yMin-1, yMax+1])
         self.ax.legend(loc = 0, fontsize = 12)
     
@@ -315,7 +329,42 @@ class graphWindow(QWidget):
             self.ax.xaxis.set_major_formatter(DateFormatter('%d-%b %H:00'))
         else:
             self.ax.xaxis.set_major_formatter(DateFormatter('%d-%b-%Y'))
-        self.canvas.draw_idle()    
+        self.canvas.draw_idle()
+    
+    #Ordena la leyenda de menos a mayor, para aod    
+    def orderLegend(self):    
+        handles,labels = self.ax.get_legend_handles_labels()
+        handles2,labels2 = self.ax.get_legend_handles_labels()
+        aux=0
+        for l in range(len(labels2)):
+            if(aux==1):
+                if(labels2[l]=="1020"):
+                    labels2[l]="1021"
+            if(labels2[l]=="1020"):
+                aux=1
+        handles = []
+        if (sum("1020" in string for string in labels)==2):
+            labels = list(set(labels))
+            labels.append("1021")
+            labels= [int(x) for x in labels]
+            labels = sorted(labels)
+            labels = [str(x) for x in labels]
+            indice = labels.index("1021")
+            labels[indice]="1020i"      
+        else:
+            labels= [int(x) for x in labels]
+            labels = sorted(labels)
+            labels = [str(x) for x in labels]
+            
+        for i in range(len(handles2)):
+            lab = labels[i]
+            if (lab=="1020i"):
+                lab = "1021"
+            indice = labels2.index(lab)
+            handles.append(handles2[indice])
+            
+        self.ax.legend(handles,labels,loc=0, fontsize = 12)
+            
     
     #Mensaje no hay datos de algun tipo
     def mensajeNoDatos(self, message):

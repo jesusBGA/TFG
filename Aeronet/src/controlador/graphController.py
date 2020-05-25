@@ -202,6 +202,7 @@ class graphController:
                 else: 
                     print (WLN)
                 self.screen.plotChannelData(aodDateX, aodTempY, yMinimo, yMaximo, lowerError, upperError, desvS, int(WLN), color, marker)
+            self.screen.orderLegend()
         #Sino hay datos
         else:
             self.screen.limpiaPlot()        

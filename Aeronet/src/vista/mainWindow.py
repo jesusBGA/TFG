@@ -32,7 +32,7 @@ class mainWindow(QWidget):
         self.main_controller = main_controller
         
         #Título y tamaño de la ventana principal
-        self.setWindowTitle("Aeronet")
+        self.setWindowTitle("CÆLIS Viewer")
         self.setFixedSize(1400,800)
         
         #Tabla para mostrar los datos
