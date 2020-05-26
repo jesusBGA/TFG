@@ -26,8 +26,8 @@ class graphWindow(QWidget):
         #Variable botón check
         self.check="AOD"
         self.checkNubes="1.0"
-        self.fechaMinAux = ""
-        self.fechaMaxAux = ""
+        self.fechaMinAux = self.fMin
+        self.fechaMaxAux = self.fMax
         
         #Título de la ventana
         self.setWindowTitle(str(ph)+" "+str(station))
@@ -154,13 +154,19 @@ class graphWindow(QWidget):
         self.ax.callbacks.connect('xlim_changed', self.fechaEvent)
         self.ax.xaxis.set_major_formatter(DateFormatter('%d-%b-%Y'))
         self.ax.xaxis.set_major_locator(plt.MaxNLocator(6))
-        self.ax.set_xlim([self.fMin, self.fMax])
+        if ((self.fMin==self.fechaMinAux) & (self.fMax==self.fechaMaxAux)):
+            self.ax.set_xlim([self.fMin, self.fMax])
+            self.toolBar._nav_stack.clear()
+        else:
+            self.ax.set_xlim([self.fechaMinAux, self.fechaMaxAux])
         self.formatoFecha()
         self.canvas.draw_idle()
     
-    #Fechas   
+    #Acción botón aod   
     def AOD_clicked(self):
         if (self.check!="AOD"):
+            self.fechaMinAux = self.fMin
+            self.fechaMaxAux = self.fMax
             self.fig.suptitle('AOD '+self.checkNubes, fontsize=20)
             if (self.checkNubes=="1.0"): 
                 self.graphController.graficaAOD(self.checkNubes)
@@ -171,6 +177,8 @@ class graphWindow(QWidget):
     #Acción boton Wext    
     def Wexp_clicked(self):
         if (self.check!="WExp"):
+            self.fechaMinAux = self.fMin
+            self.fechaMaxAux = self.fMax
             self.fig.suptitle('WExp '+self.checkNubes, fontsize=20)
             if (self.checkNubes=="1.0"): 
                 self.graphController.graficaWExpL1()
@@ -181,6 +189,8 @@ class graphWindow(QWidget):
     #Acción boton vapor de agua    
     def WaterVapor_clicked(self):
         if (self.check!="WaterVapor"):
+            self.fechaMinAux = self.fMin
+            self.fechaMaxAux = self.fMax
             self.fig.suptitle('Water Vapor '+self.checkNubes, fontsize=20)
             if (self.checkNubes=="1.0"): 
                 self.graphController.graficaWVaporL1()
@@ -191,6 +201,8 @@ class graphWindow(QWidget):
     #Acción boton temperatura    
     def temperaturaClicked(self):
         if (self.check!="Temperatura"):
+            self.fechaMinAux = self.fMin
+            self.fechaMaxAux = self.fMax
             self.fig.suptitle('Temperatura '+self.checkNubes, fontsize=20)
             if (self.checkNubes=="1.0"): 
                 self.graphController.graficaTemperaturaL1()
@@ -201,6 +213,8 @@ class graphWindow(QWidget):
     #Acción boton temperatura    
     def PWRClicked(self):
         if (self.check!="PWR"):
+            self.fechaMinAux = self.fMin
+            self.fechaMaxAux = self.fMax
             self.fig.suptitle('PWR ', fontsize=20) 
             self.graphController.graficaPWR() 
             self.check="PWR"
@@ -220,6 +234,9 @@ class graphWindow(QWidget):
     def filtroNubesL15(self):
         if (self.checkNubes!="1.5"):
             self.checkNubes="1.5"
+            
+            self.fechaAuxiliar()
+            
             self.cambiarFiltro()
         if (self.check=="PWR"):
             self.mensajeNoFiltroPWR()  
@@ -228,29 +245,74 @@ class graphWindow(QWidget):
     def cambiarFiltro(self):
         if (self.check=="AOD"):
             self.check="aod"
-            self.AOD_clicked()
+            self.AOD_clickedCL()
         elif (self.check=="Temperatura"):
             self.check="Temp"
-            self.temperaturaClicked()   
+            self.temperaturaClickedCL()   
         elif (self.check=="WaterVapor"):
             self.check="WV"
-            self.WaterVapor_clicked()
+            self.WaterVapor_clickedCL()
         elif (self.check=="WExp"):
             self.check="WE"
-            self.Wexp_clicked()
+            self.Wexp_clickedCL()
     
     #Metodo para comprobar el zoom ante un cambio cloud level
     def fechaAuxiliar(self):
         self.fechaMinAux = self.getXMin()
+        self.fechaMinAux= datetime.strptime(self.fechaMinAux, '%Y-%m-%d %H:%M:%S')
         self.fechaMaxAux = self.getXMax()
+        self.fechaMaxAux= datetime.strptime(self.fechaMaxAux, '%Y-%m-%d %H:%M:%S')
+        self.minY = self.getYMin()
+        self.maxY = self.getYMax()
         if ((self.fMin==self.fechaMinAux) & (self.fMax==self.fechaMaxAux)):
             self.fechaMinAux = self.fMin
             self.fechaMaxAux = self.fMax
             
+    #Acción botón aod desde CloudLevel   
+    def AOD_clickedCL(self):
+        if (self.check!="AOD"):
+            self.fig.suptitle('AOD '+self.checkNubes, fontsize=20)
+            if (self.checkNubes=="1.0"): 
+                self.graphController.graficaAOD(self.checkNubes)
+            elif (self.checkNubes=="1.5"):
+                self.graphController.graficaAOD(self.checkNubes)
+            self.check="AOD"
+        
+    #Acción boton Wext desde CloudLevel  
+    def Wexp_clickedCL(self):
+        if (self.check!="WExp"):
+            self.fig.suptitle('WExp '+self.checkNubes, fontsize=20)
+            if (self.checkNubes=="1.0"): 
+                self.graphController.graficaWExpL1()
+            elif (self.checkNubes=="1.5"):
+                self.graphController.graficaWExpL15()
+            self.check="WExp"
+        
+    #Acción boton vapor de agua desde CloudLevel   
+    def WaterVapor_clickedCL(self):
+        if (self.check!="WaterVapor"):
+            self.fig.suptitle('Water Vapor '+self.checkNubes, fontsize=20)
+            if (self.checkNubes=="1.0"): 
+                self.graphController.graficaWVaporL1()
+            elif (self.checkNubes=="1.5"):
+                self.graphController.graficaWVaporL15()
+            self.check="WaterVapor"
+    
+    #Acción boton temperatura desde CloudLevel   
+    def temperaturaClickedCL(self):
+        if (self.check!="Temperatura"):
+            self.fig.suptitle('Temperatura '+self.checkNubes, fontsize=20)
+            if (self.checkNubes=="1.0"): 
+                self.graphController.graficaTemperaturaL1()
+            elif (self.checkNubes=="1.5"):
+                self.graphController.graficaTemperaturaL15()
+            self.check="Temperatura"
+                    
     #Plotea datos sin canales (temperatura y vapor de agua)
     def plotSimpleData(self, dataX, dataY, tipo):
         self.limpiaPlot()
-        self.toolBar._nav_stack.clear()
+        if ((self.fMin==self.fechaMinAux) & (self.fMax==self.fechaMaxAux)):
+            self.toolBar._nav_stack.clear()
         yMax = dataY.values.max()
         yMin = dataY.values.min()
         fmt = "black"
@@ -260,7 +322,10 @@ class graphWindow(QWidget):
             fmt = "bo-"
         elif (tipo =="PWR"):
             fmt = "go-"
-        self.ax.set_ylim([yMin-1, yMax+1])
+        if ((self.fMin==self.fechaMinAux) & (self.fMax==self.fechaMaxAux)):
+            self.ax.set_ylim([yMin-1, yMax+1])
+        else:
+            self.ax.set_ylim([self.minY, self.maxY])
         self.ax.plot(dataX, dataY, fmt, label = tipo)
         self.ax.legend(loc = 0)
         self.canvas.draw_idle()
@@ -268,7 +333,8 @@ class graphWindow(QWidget):
     #Plotea los datos referentes a WExp, formado por alpha 440-870 y alpha 380-500
     def plotWExp(self, dataX, dataY440, dataY380):
         self.limpiaPlot()
-        self.toolBar._nav_stack.clear()
+        if ((self.fMin==self.fechaMinAux) & (self.fMax==self.fechaMaxAux)):
+            self.toolBar._nav_stack.clear()
         #Seleccionar maximo y minimo entre los 2 canales
         yMax440 = dataY440.values.max()
         yMin440 = dataY440.values.min()
@@ -284,7 +350,10 @@ class graphWindow(QWidget):
             yMin=yMin380
         self.ax.plot(dataX, dataY440, "ro-", label = "alpha 440-870")
         self.ax.plot(dataX, dataY380, "bD-", label = "alpha 380-500")
-        self.ax.set_ylim([yMin-1, yMax+1])
+        if ((self.fMin==self.fechaMinAux) & (self.fMax==self.fechaMaxAux)):
+            self.ax.set_ylim([yMin-1, yMax+1])
+        else:
+            self.ax.set_ylim([self.minY, self.maxY])
         self.ax.legend(loc = 0)
         self.canvas.draw_idle()
     
@@ -294,7 +363,10 @@ class graphWindow(QWidget):
         #Por si en un futuro se quiere que si que aparrezca el boxplot de la desviacion estandar.
         '''if (self.checkNubes=="1.5"):
             self.ax.bar(dataX, desvS, bottom = dataY-(desvS/2), width=desvS*0.4, color='white', edgecolor = color, align='center')'''
-        self.ax.set_ylim([yMin-1, yMax+1])
+        if ((self.fMin==self.fechaMinAux) & (self.fMax==self.fechaMaxAux)):
+            self.ax.set_ylim([yMin-1, yMax+1])
+        else:
+            self.ax.set_ylim([self.minY, self.maxY])
         self.ax.legend(loc = 0, fontsize = 12)
     
     #Tras detectar un evento de dibujo sobre la grafica, actualiza el formato de la fecha del eje x
@@ -312,6 +384,16 @@ class graphWindow(QWidget):
         fecha = self.ax.get_xlim()
         fmax = str(num2date(fecha[1]))
         return fmax[0:19]
+    
+    #Obtener valores minimo actual del eje y
+    def getYMin(self):
+        minY = self.ax.get_ylim()
+        return minY[0]
+    
+    #Obtener valor maximo actual del eje y
+    def getYMax(self):
+        maxY = self.ax.get_ylim()
+        return maxY[1]
     
     #Definir el formato de la fecha segun el zoom aplicado
     def formatoFecha(self):
